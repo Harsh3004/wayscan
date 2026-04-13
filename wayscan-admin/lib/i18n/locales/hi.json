@@ -1,0 +1,300 @@
+{
+  "app": {
+    "title": "वेस्कैन",
+    "subtitle": "एडमिन सिस्टम"
+  },
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "live_map": "लाइव मैप",
+    "reports": "रिपोर्ट्स",
+    "work_orders": "कार्य आदेश",
+    "analytics": "विश्लेषण",
+    "sync_status": "सिंक स्थिति",
+    "user_management": "उपयोगकर्ता प्रबंधन",
+    "settings": "सेटिंग्स",
+    "help": "सहायता एवं सपोर्ट",
+    "admin_user": "एडमिन उपयोगकर्ता"
+  },
+  "header": {
+    "search_placeholder": "शहर, क्षेत्र या निर्देशांक द्वारा खोजें...",
+    "current_date": "आज की तिथि",
+    "pending_sync": "सिंक लंबित",
+    "all_synced": "सभी सिंक हो गए",
+    "toggle_light": "लाइट मोड",
+    "toggle_dark": "डार्क मोड",
+    "toggle_lang": "Switch to English"
+  },
+  "dashboard": {
+    "overview": "डैशबोर्ड अवलोकन",
+    "welcome": "वापस स्वागत है",
+    "overview_subtitle": "आज वेस्कैन एआई नेटवर्क के साथ क्या हो रहा है, यहाँ देखें।",
+    "kpi": {
+      "total_potholes": "कुल गड्ढे",
+      "critical_priorities": "गंभीर प्राथमिकताएँ",
+      "active_vehicles": "सक्रिय वाहन",
+      "repaired_this_week": "इस सप्ताह मरम्मत",
+      "vs_last_week": "पिछले सप्ताह की तुलना में",
+      "needs_dispatch": "डिस्पैच की आवश्यकता",
+      "online": "ऑनलाइन",
+      "avg_resolution_time": "औसत समाधान समय",
+      "pending_sync": "लंबित ऑफ़लाइन सिंक"
+    },
+    "filters": {
+      "title": "उन्नत फ़िल्टर",
+      "subtitle": "डेटा विज़ुअलाइज़ेशन और रिपोर्ट परिष्कृत करें",
+      "reset_all": "सभी रीसेट करें",
+      "date_range": "तिथि सीमा",
+      "state": "राज्य",
+      "city": "शहर",
+      "priority_level": "प्राथमिकता स्तर",
+      "status": "स्थिति",
+      "timeframe": "समय सीमा",
+      "area_mode": "क्षेत्र मोड",
+      "all": "सभी",
+      "urban": "शहरी",
+      "rural": "ग्रामीण",
+      "options": {
+        "all_states": "सभी राज्य",
+        "all_cities": "सभी शहर",
+        "any_priority": "कोई भी प्राथमिकता",
+        "all_status": "सभी स्थिति",
+        "lifetime": "आजीवन",
+        "last_24h": "पिछले 24 घंटे",
+        "last_7d": "पिछले 7 दिन",
+        "last_30d": "पिछले 30 दिन"
+      }
+    },
+    "map": {
+      "title": "प्राथमिकता हीटमैप",
+      "legend_title": "प्राथमिकता मैप लेजेंड",
+      "high": "उच्च",
+      "medium": "मध्यम",
+      "low": "निम्न",
+      "vehicles": "वाहन",
+      "vehicle": "वाहन",
+      "unique_detections": "अद्वितीय पहचान",
+      "highest_priority": "सर्वोच्च प्राथमिकता",
+      "view_details": "विवरण देखें",
+      "initializing": "मैप इंजन प्रारंभ हो रहा है..."
+    },
+    "table": {
+      "title": "हाल की पहचान",
+      "showing_reports": "{count} रिपोर्ट दिखा रहे हैं",
+      "no_reports": "चयनित फ़िल्टर के लिए कोई रिपोर्ट नहीं मिली",
+      "reports": "रिपोर्ट्स",
+      "view_full_report": "पूरी रिपोर्ट देखें"
+    },
+    "chart": {
+      "title": "सिस्टम प्रदर्शन प्रवृत्ति",
+      "subtitle": "साप्ताहिक पहचान बनाम सफल समाधान की तुलना",
+      "efficiency_rate": "दक्षता दर",
+      "new_detections": "नई पहचानें",
+      "repaired_issues": "मरम्मत की गई समस्याएँ",
+      "ai_alert_threshold": "वर्तमान एआई अलर्ट सीमा",
+      "target_sla": "लक्ष्य एसएलए (SLA)",
+      "download_report": "रिपोर्ट डाउनलोड करें"
+    },
+    "modal": {
+      "evidence": "साक्ष्य",
+      "dashcam_timestamp": "डैशकैम टाइमस्टैम्प",
+      "confidence_score": "सटीकता स्कोर",
+      "accuracy": "सटीकता",
+      "unique_vehicles": "अद्वितीय वाहन",
+      "primary_driver": "प्राथमिक ड्राइवर",
+      "incident_cluster": "घटना समूह",
+      "total_reports_sweded": "कुल रिपोर्ट संख्या",
+      "first_detected": "पहली बार पहचाना गया",
+      "assigned_team": "सौंपी गई टीम",
+      "unassigned": "असाइन नहीं किया गया",
+      "admin_notes": "प्रशासनिक नोट्स",
+      "no_notes": "अभी तक कोई प्रशासनिक नोट नहीं जोड़ा गया।",
+      "change_status": "स्थिति बदलें",
+      "dispatch_team": "टीम भेजें",
+      "status": {
+        "reported": "रिपोर्ट किया गया",
+        "in_progress": "प्रगति पर है",
+        "repaired": "मरम्मत हो गई"
+      },
+      "priority": {
+        "high": "उच्च",
+        "medium": "मध्यम",
+        "low": "निम्न"
+      }
+    }
+  },
+  "heatmap": {
+    "title": "प्राथमिकता स्थानिक दृश्य",
+    "subtitle": "क्षेत्रीय नेटवर्क पर रीयल-टाइम क्लस्टर विज़ुअलाइज़ेशन",
+    "live_data": "लाइव डेटा फ़ीड सक्रिय",
+    "priority_schema": {
+      "title": "प्राथमिकता योजना",
+      "high": "उच्च कार्रवाई",
+      "medium": "मध्यम अलार्म",
+      "low": "कम चिंता",
+      "desc": "प्राथमिकता प्रति समन्वय क्लस्टर अद्वितीय वाहन गणना (V) द्वारा भारित है।"
+    }
+  },
+  "work_orders": {
+    "title": "रखरखाव संचालन",
+    "subtitle": "फील्ड टीमों और सक्रिय मरम्मत कार्यक्रम का प्रबंधन करें",
+    "export_pdf": "फ़ील्ड PDF निर्यात करें",
+    "metrics": {
+      "critical": "गंभीर कतार",
+      "critical_desc": "तत्काल प्रेषण की आवश्यकता है",
+      "in_progress": "प्रगति पर है",
+      "in_progress_desc": "टीमें वर्तमान में साइट पर हैं",
+      "completed": "पूर्ण (24 घंटे)",
+      "completed_desc": "सफलतापूर्वक हल किया गया"
+    },
+    "search": "ऑर्डर खोजें...",
+    "sort_date": "क्रमानुसार: दिनांक",
+    "table": {
+      "location": "घटना स्थल",
+      "priority": "प्राथमिकता",
+      "team": "सौंपी गई टीम",
+      "detected": "जांच की गई",
+      "actions": "कार्रवाइयाँ",
+      "dispatch": "प्रेषण करें",
+      "pending": "लंबित"
+    }
+  },
+  "analytics": {
+    "title": "सिस्टम एनालिटिक्स",
+    "subtitle": "क्रॉस-रीजनल प्रदर्शन और बुनियादी ढांचा रुझान",
+    "city_distribution": "शहरी वितरण",
+    "view_all_cities": "सभी शहर देखें",
+    "area_split": "क्षेत्र विभाजन",
+    "metrics": {
+      "repair_rate": "मरम्मत दर",
+      "active_reports": "सक्रिय रिपोर्ट",
+      "response_time": "प्रतिक्रिया समय",
+      "network_health": "नेटवर्क स्वास्थ्य",
+      "stable": "स्थिर"
+    }
+  },
+  "reports": {
+    "title": "घटना रिपोर्ट",
+    "subtitle": "सभी पहचानी गई नागरिक बुनियादी ढांचा समस्याओं का पूरा डेटाबेस",
+    "export_csv": "सभी डेटा निर्यात करें (CSV)",
+    "search_placeholder": "स्थान या शहर से खोजें...",
+    "filters": "फ़िल्टर",
+    "sort_newest": "क्रमबद्ध करें: सबसे नया पहले",
+    "table": {
+      "id": "आईडी",
+      "location_info": "स्थान जानकारी",
+      "priority": "प्राथमिकता",
+      "vehicle_count": "वाहन गिनती",
+      "status": "स्थिति",
+      "activity": "संवाद",
+      "vehicles": "वाहन",
+      "inspect": "निरीक्षण करें"
+    }
+  },
+  "settings": {
+    "title": "सिस्टम कॉन्फ़िगरेशन",
+    "subtitle": "AI लॉजिक, क्षेत्रीय थ्रेशोल्ड और व्यवस्थापक प्राथमिकताएं समायोजित करें",
+    "save_changes": "सभी परिवर्तन सहेजें",
+    "ai": {
+      "title": "एज AI और क्लस्टरिंग",
+      "subtitle": "YOLOv8 और DBSCAN पैरामीटर कॉन्फ़िगर करें",
+      "radius_label": "स्थानिक क्लस्टरिंग त्रिज्या (मीटर)",
+      "radius_desc": "वह दूरी जिसके भीतर रिपोर्टों को एक क्लस्टर में मिला दिया जाता है।",
+      "confidence_label": "जांच आत्मविश्वास सीमा",
+      "confidence_desc": "नागरिक समस्या को चिह्नित करने के लिए आवश्यक न्यूनतम एआई आत्मविश्वास।"
+    },
+    "alerts": {
+      "title": "अलर्ट अधिसूचना नियम",
+      "subtitle": "प्रबंधित करें कि अलर्ट कब और कहाँ भेजे जाएं",
+      "high_priority": "उच्च प्राथमिकता जांच के लिए अलर्ट",
+      "low_battery": "कम ऑफ़लाइन सिंक बैटरी चेतावनी",
+      "weekly_summary": "साप्ताहिक सारांश रिपोर्ट ईमेल",
+      "urgent_dispatch": "तत्काल डिस्पैच पुश सूचनाएं"
+    },
+    "regions": {
+      "title": "क्षेत्रीय दायरा",
+      "subtitle": "नियुक्त भौगोलिक क्षेत्र",
+      "primary": "प्राथमिक क्षेत्र",
+      "add_region": "+ क्षेत्र जोड़ें"
+    },
+    "security": {
+      "title": "डेटा और सुरक्षा",
+      "api_key": "बाहरी API कुंजी प्रबंधन",
+      "api_key_desc": "S3/MongoDB कनेक्शन कॉन्फ़िगर करें",
+      "purge_cache": "सिस्टम कैश साफ़ करें",
+      "purge_cache_desc": "व्यवस्थापक ओवरराइड आवश्यक है"
+    }
+  },
+  "sync": {
+    "title": "डेटा पाइपलाइन",
+    "subtitle": "फ़ील्ड डिवाइस से रीयल-टाइम सिंक स्थिति की निगरानी",
+    "network_online": "नेटवर्क ऑनलाइन",
+    "health_card": {
+      "health": "स्वास्थ्य",
+      "queue_integrity": "कतार अखंडता",
+      "items_waiting": "आइटम वर्तमान में क्षेत्रीय मृत क्षेत्रों में प्रतीक्षा कर रहे हैं",
+      "force_sync": "फोर्स ग्लोबल सिंक"
+    },
+    "devices": {
+      "title": "सक्रिय एज डिवाइस",
+      "connected": "डिवाइस जुड़े हैं",
+      "headers": {
+        "device_id": "डिवाइस आईडी",
+        "current_zone": "वर्तमान क्षेत्र",
+        "signal": "सिग्नल",
+        "queue": "कतार",
+        "actions": "कार्रवाइयाँ"
+      },
+      "reports": "रिपोर्ट",
+      "sync_now": "अभी सिंक करें"
+    }
+  },
+  "users": {
+    "title": "प्रशासनिक पहुँच",
+    "subtitle": "टीम भूमिकाएं और संचालन क्षेत्र असाइनमेंट प्रबंधित करें",
+    "add_member": "नया टीम सदस्य जोड़ें",
+    "search_placeholder": "नाम या क्षेत्र द्वारा सदस्यों को खोजें...",
+    "manage_permissions": "अनुमतियां प्रबंधित करें",
+    "roles": {
+      "admin": "व्यवस्थापक",
+      "field_officer": "क्षेत्र अधिकारी",
+      "viewer": "दर्शक"
+    }
+  },
+  "data": {
+    "cities": {
+      "Mumbai": "मुंबई",
+      "Delhi": "दिल्ली",
+      "Bengaluru": "बेंगलुरु",
+      "Jabalpur": "जबलपुर",
+      "Lucknow": "लखनऊ",
+      "Mumbai Metropolitan": "मुंबई मेट्रोपॉलिटन",
+      "National Capital Territory": "राष्ट्रीय राजधानी क्षेत्र (एनसीटी)",
+      "Jabalpur Division": "जबलपुर संभाग",
+      "Lucknow Junction": "लखनऊ जंक्शन",
+      "Mumbai West": "मुंबई पश्चिम",
+      "Delhi Central": "मध्य दिल्ली",
+      "National Council": "राष्ट्रीय परिषद",
+      "Jabalpur HQ": "जबलपुर मुख्यालय"
+    },
+    "areas": {
+      "urban": "शहरी",
+      "rural": "ग्रामीण"
+    },
+    "locations": {
+      "Wright Town, Near Stadium": "राइट टाउन, स्टेडियम के पास",
+      "Civic Center Road": "सिविक सेंटर रोड",
+      "Sion-Panvel Highway": "सायन-पनवेल हाईवे",
+      "Thane Belapur Road": "ठाणे बेलापुर रोड",
+      "Janpath Road, New Delhi": "जनपथ रोड, नई दिल्ली",
+      "Indiranagar 100ft Road": "इंदिरानगर 100 फीट रोड",
+      "Rural Road Sector 4, Panagar": "ग्रामीण सड़क सेक्टर 4, पनागर",
+      "Gomti Nagar Link Road": "गोमती नगर लिंक रोड"
+    },
+    "users": {
+      "Anjali Sharma": "अंजलि शर्मा",
+      "Vikram Singh": "विक्रम सिंह",
+      "Rahul Verma": "राहुल वर्मा",
+      "Priya Das": "प्रिया दास"
+    }
+  }
+}

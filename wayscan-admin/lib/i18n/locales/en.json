@@ -1,0 +1,300 @@
+{
+  "app": {
+    "title": "WayScan",
+    "subtitle": "Admin System"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "live_map": "Live Map",
+    "reports": "Reports",
+    "work_orders": "Work Orders",
+    "analytics": "Analytics",
+    "sync_status": "Sync Status",
+    "user_management": "User Management",
+    "settings": "Settings",
+    "help": "Help & Support",
+    "admin_user": "Admin User"
+  },
+  "header": {
+    "search_placeholder": "Search by city, area, or coordinates...",
+    "current_date": "Current Date",
+    "pending_sync": "Pending Sync",
+    "all_synced": "All Synced",
+    "toggle_light": "Toggle Light Mode",
+    "toggle_dark": "Toggle Dark Mode",
+    "toggle_lang": "हिंदी में बदलें"
+  },
+  "dashboard": {
+    "overview": "Dashboard Overview",
+    "welcome": "Welcome back",
+    "overview_subtitle": "Here is what's happening with the WayScan AI network today.",
+    "kpi": {
+      "total_potholes": "Total Potholes",
+      "critical_priorities": "Critical Priorities",
+      "active_vehicles": "Active Vehicles",
+      "repaired_this_week": "Repaired This Week",
+      "vs_last_week": "vs last week",
+      "needs_dispatch": "Needs dispatch",
+      "online": "Online",
+      "avg_resolution_time": "Avg. Resolution Time (days)",
+      "pending_sync": "Pending Offline Sync"
+    },
+    "filters": {
+      "title": "Advanced Filters",
+      "subtitle": "Refine data visualization and reports",
+      "reset_all": "Reset All",
+      "date_range": "Date Range",
+      "state": "State",
+      "city": "City",
+      "priority_level": "Priority Level",
+      "status": "Status",
+      "timeframe": "Timeframe",
+      "area_mode": "Area Mode",
+      "all": "All",
+      "urban": "Urban",
+      "rural": "Rural",
+      "options": {
+        "all_states": "All States",
+        "all_cities": "All Cities",
+        "any_priority": "Any Priority",
+        "all_status": "All Status",
+        "lifetime": "Lifetime",
+        "last_24h": "Last 24 Hours",
+        "last_7d": "Last 7 Days",
+        "last_30d": "Last 30 Days"
+      }
+    },
+    "map": {
+      "title": "Priority Heatmap",
+      "legend_title": "Priority Map Legend",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "vehicles": "Vehicles",
+      "vehicle": "Vehicle",
+      "unique_detections": "Unique detections",
+      "highest_priority": "Highest Priority",
+      "view_details": "View Details",
+      "initializing": "Initializing Map Engine..."
+    },
+    "table": {
+      "title": "Recent Detections",
+      "showing_reports": "Showing {count} reports",
+      "no_reports": "No reports found for selected filters",
+      "reports": "reports",
+      "view_full_report": "View Full Report"
+    },
+    "chart": {
+      "title": "System Performance Trend",
+      "subtitle": "Comparing weekly detections vs successful resolutions",
+      "efficiency_rate": "Efficiency Rate",
+      "new_detections": "New Detections",
+      "repaired_issues": "Repaired Issues",
+      "ai_alert_threshold": "Current AI Alert Threshold",
+      "target_sla": "Target SLA",
+      "download_report": "Download Report"
+    },
+    "modal": {
+      "evidence": "Evidence",
+      "dashcam_timestamp": "Dashcam Timestamp",
+      "confidence_score": "Confidence Score",
+      "accuracy": "Accuracy",
+      "unique_vehicles": "Unique Vehicles",
+      "primary_driver": "Primary Priority Driver",
+      "incident_cluster": "Incident Cluster",
+      "total_reports_sweded": "Total Reports Sweded",
+      "first_detected": "First Detected",
+      "assigned_team": "Assigned Team",
+      "unassigned": "Unassigned",
+      "admin_notes": "Administrative Notes",
+      "no_notes": "No administrative notes added yet.",
+      "change_status": "Change Status",
+      "dispatch_team": "Dispatch Team",
+      "status": {
+        "reported": "Reported",
+        "in_progress": "In Progress",
+        "repaired": "Repaired"
+      },
+      "priority": {
+        "high": "High Priority",
+        "medium": "Medium Priority",
+        "low": "Low Priority"
+      }
+    }
+  },
+  "heatmap": {
+    "title": "Priority Spatial View",
+    "subtitle": "Real-time cluster visualization across regional networks",
+    "live_data": "Live Data Feed Active",
+    "priority_schema": {
+      "title": "Priority Schema",
+      "high": "High Action",
+      "medium": "Medium Alarm",
+      "low": "Low Concern",
+      "desc": "Priority is weighted by Unique Vehicle Count (V) per coordinate cluster."
+    }
+  },
+  "work_orders": {
+    "title": "Maintenance Ops",
+    "subtitle": "Manage field teams and active repair schedules",
+    "export_pdf": "Export Field PDF",
+    "metrics": {
+      "critical": "Critical Queue",
+      "critical_desc": "Requires immediate dispatch",
+      "in_progress": "In Progress",
+      "in_progress_desc": "Teams currently on site",
+      "completed": "Completed (24h)",
+      "completed_desc": "Successfully resolved"
+    },
+    "search": "Search orders...",
+    "sort_date": "Sort by: Date",
+    "table": {
+      "location": "Incident Location",
+      "priority": "Priority",
+      "team": "Assigned Team",
+      "detected": "Detected",
+      "actions": "Actions",
+      "dispatch": "Dispatch",
+      "pending": "PENDING"
+    }
+  },
+  "analytics": {
+    "title": "System Analytics",
+    "subtitle": "Cross-regional performance and infrastructure trends",
+    "city_distribution": "City Distribution",
+    "view_all_cities": "View All Cities",
+    "area_split": "Area Split",
+    "metrics": {
+      "repair_rate": "Repair Rate",
+      "active_reports": "Active Reports",
+      "response_time": "Response Time",
+      "network_health": "Network Health",
+      "stable": "Stable"
+    }
+  },
+  "reports": {
+    "title": "Incident Reports",
+    "subtitle": "Full database of all detected civic infrastructure issues",
+    "export_csv": "Export All Data (CSV)",
+    "search_placeholder": "Search by location or city...",
+    "filters": "Filters",
+    "sort_newest": "Sort: Newest First",
+    "table": {
+      "id": "ID",
+      "location_info": "Location Info",
+      "priority": "Priority",
+      "vehicle_count": "Vehicle Count",
+      "status": "Status",
+      "activity": "Activity",
+      "vehicles": "Vehicles",
+      "inspect": "Inspect"
+    }
+  },
+  "settings": {
+    "title": "System Configuration",
+    "subtitle": "Adjust AI logic, regional thresholds and admin preferences",
+    "save_changes": "Save All Changes",
+    "ai": {
+      "title": "Edge AI & Clustering",
+      "subtitle": "Configure YOLOv8 and DBSCAN parameters",
+      "radius_label": "Spatial Clustering Radius (meters)",
+      "radius_desc": "Distance within which reports are merged into one cluster.",
+      "confidence_label": "Detection Confidence Threshold",
+      "confidence_desc": "Minimum AI confidence required to flag a civic issue."
+    },
+    "alerts": {
+      "title": "Alert Notification Rules",
+      "subtitle": "Manage when and where alerts are dispatched",
+      "high_priority": "Alert for High Priority Detections",
+      "low_battery": "Low Offline Sync Battery Warnings",
+      "weekly_summary": "Weekly Summary Report Email",
+      "urgent_dispatch": "Urgent Dispatch Push Notifications"
+    },
+    "regions": {
+      "title": "Regional Scope",
+      "subtitle": "Assigned geographic zones",
+      "primary": "Primary Regions",
+      "add_region": "+ Add Region"
+    },
+    "security": {
+      "title": "Data & Security",
+      "api_key": "External API Key Management",
+      "api_key_desc": "Configure S3/MongoDB Connection",
+      "purge_cache": "Purge System Cache",
+      "purge_cache_desc": "Requires Admin Override"
+    }
+  },
+  "sync": {
+    "title": "Data Pipeline",
+    "subtitle": "Monitoring real-time sync status from field devices",
+    "network_online": "Network Online",
+    "health_card": {
+      "health": "Health",
+      "queue_integrity": "Queue Integrity",
+      "items_waiting": "items currently waiting in regional dead zones",
+      "force_sync": "Force Global Sync"
+    },
+    "devices": {
+      "title": "Active Edge Devices",
+      "connected": "DEVICES CONNECTED",
+      "headers": {
+        "device_id": "Device ID",
+        "current_zone": "Current Zone",
+        "signal": "Signal",
+        "queue": "Queue",
+        "actions": "Actions"
+      },
+      "reports": "Reports",
+      "sync_now": "SYNC NOW"
+    }
+  },
+  "users": {
+    "title": "Administrative Access",
+    "subtitle": "Manage team roles and operational zone assignments",
+    "add_member": "Add New Team Member",
+    "search_placeholder": "Search members by name or zone...",
+    "manage_permissions": "Manage Permissions",
+    "roles": {
+      "admin": "Admin",
+      "field_officer": "Field Officer",
+      "viewer": "Viewer"
+    }
+  },
+  "data": {
+    "cities": {
+      "Mumbai": "Mumbai",
+      "Delhi": "Delhi",
+      "Bengaluru": "Bengaluru",
+      "Jabalpur": "Jabalpur",
+      "Lucknow": "Lucknow",
+      "Mumbai Metropolitan": "Mumbai Metropolitan",
+      "National Capital Territory": "National Capital Territory",
+      "Jabalpur Division": "Jabalpur Division",
+      "Lucknow Junction": "Lucknow Junction",
+      "Mumbai West": "Mumbai West",
+      "Delhi Central": "Delhi Central",
+      "National Council": "National Council",
+      "Jabalpur HQ": "Jabalpur HQ"
+    },
+    "areas": {
+      "urban": "Urban",
+      "rural": "Rural"
+    },
+    "locations": {
+      "Wright Town, Near Stadium": "Wright Town, Near Stadium",
+      "Civic Center Road": "Civic Center Road",
+      "Sion-Panvel Highway": "Sion-Panvel Highway",
+      "Thane Belapur Road": "Thane Belapur Road",
+      "Janpath Road, New Delhi": "Janpath Road, New Delhi",
+      "Indiranagar 100ft Road": "Indiranagar 100ft Road",
+      "Rural Road Sector 4, Panagar": "Rural Road Sector 4, Panagar",
+      "Gomti Nagar Link Road": "Gomti Nagar Link Road"
+    },
+    "users": {
+      "Anjali Sharma": "Anjali Sharma",
+      "Vikram Singh": "Vikram Singh",
+      "Rahul Verma": "Rahul Verma",
+      "Priya Das": "Priya Das"
+    }
+  }
+}
