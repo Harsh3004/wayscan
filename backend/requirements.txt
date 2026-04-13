@@ -1,0 +1,8 @@
+flask
+uvicorn
+pymongo
+celery
+redis
+scikit-learn
+numpy
+python-dotenv
