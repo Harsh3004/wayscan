@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -64,26 +64,28 @@ const worstRoads = [
   { rank: 10, location: 'Janpath Road', city: 'Delhi', count: 3, priority: 'low' },
 ];
 
-// Build a simple activity calendar for April 2024
-const activityDays = Array.from({ length: 30 }, (_, i) => ({
-  day: i + 1,
-  count: Math.floor(Math.random() * 20),
-}));
+// Deterministic activity data for April 2024 (seeded, not random)
+const APRIL_ACTIVITY = [0,3,5,12,8,2,0, 4,15,18,7,3,1,0, 9,14,19,11,6,2,0, 7,12,16,8,4,1,0, 5,10,3];
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 const AREA_COLORS = ['#3b82f6', '#fbbf24'];
 const REPAIR_COLORS = ['#10b981', '#f1f5f9'];
 
-const getHeatColor = (count: number) => {
+const getHeatColor = (count: number): string => {
   if (count === 0) return 'bg-slate-100 dark:bg-slate-800';
-  if (count < 5) return 'bg-blue-100 dark:bg-blue-900/40';
-  if (count < 10) return 'bg-blue-300 dark:bg-blue-700/60';
-  if (count < 15) return 'bg-blue-500 dark:bg-blue-500/80';
+  if (count < 4)  return 'bg-blue-100 dark:bg-blue-900/40';
+  if (count < 8)  return 'bg-blue-300 dark:bg-blue-700/60';
+  if (count < 13) return 'bg-blue-500 dark:bg-blue-500';
   return 'bg-blue-700 dark:bg-blue-400';
 };
 
 export default function AnalyticsPage() {
   const { t } = useLanguage();
+
+  // April 1, 2024 = Monday; week starts Sunday = offset 1
+  const activityDays = useMemo(() =>
+    APRIL_ACTIVITY.map((count, i) => ({ day: i + 1, count })),
+  []);
 
   const metrics = [
     { label: t('analytics.metrics.repair_rate'), value: '78%', trend: '+4.2%', up: true, icon: CheckCircle2, color: 'emerald' },
@@ -139,9 +141,9 @@ export default function AnalyticsPage() {
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-8 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-blue-500" /> Monthly Trend
+              <Activity className="w-5 h-5 text-blue-500" /> {t('analytics.monthly_trend')}
             </h3>
-            <span className="text-[10px] font-black text-slate-400 uppercase bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700">Oct – Apr</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700">{t('analytics.oct_apr')}</span>
           </div>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -170,9 +172,9 @@ export default function AnalyticsPage() {
         {/* Repair Rate Donut */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-8 shadow-sm flex flex-col items-center justify-center">
           <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Repair Rate
+            <CheckCircle2 className="w-5 h-5 text-emerald-500" /> {t('analytics.repair_rate_title')}
           </h3>
-          <p className="text-xs font-semibold text-slate-400 mb-6">Current month</p>
+          <p className="text-xs font-semibold text-slate-400 mb-6">{t('analytics.current_month')}</p>
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -186,7 +188,7 @@ export default function AnalyticsPage() {
           </div>
           <div className="text-center -mt-4">
             <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400">78%</div>
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Potholes Repaired</div>
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{t('analytics.potholes_repaired')}</div>
           </div>
           <div className="flex items-center gap-4 mt-5 text-xs font-bold">
             <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />Repaired</div>
@@ -222,7 +224,7 @@ export default function AnalyticsPage() {
         {/* Response Time Histogram */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-8 shadow-sm">
           <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-6">
-            <TrendingUp className="w-5 h-5 text-purple-500" /> Response Time
+            <TrendingUp className="w-5 h-5 text-purple-500" /> {t('analytics.response_time')}
           </h3>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -243,7 +245,7 @@ export default function AnalyticsPage() {
         {/* Top 10 */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-8 shadow-sm">
           <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-6">
-            <Trophy className="w-5 h-5 text-amber-500" /> Top 10 Worst Roads
+            <Trophy className="w-5 h-5 text-amber-500" /> {t('analytics.top_roads')}
           </h3>
           <div className="space-y-2.5">
             {worstRoads.map((road) => (
@@ -275,31 +277,34 @@ export default function AnalyticsPage() {
         {/* Daily Activity Heatmap Calendar */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-8 shadow-sm">
           <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-2">
-            <Calendar className="w-5 h-5 text-blue-500" /> Daily Activity
+            <Calendar className="w-5 h-5 text-blue-500" /> {t('analytics.daily_activity')}
           </h3>
-          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-6">April 2024 — Reports per day</p>
-          <div className="grid grid-cols-7 gap-2 mb-4">
+          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-6">{t('analytics.daily_activity_subtitle')}</p>
+          <div className="grid grid-cols-7 gap-2 mb-3">
             {['S','M','T','W','T','F','S'].map((d, i) => (
               <div key={i} className="text-center text-[10px] font-black text-slate-400 uppercase">{d}</div>
             ))}
           </div>
-          {/* Offset April 1 = Monday (col 2 = index 1) */}
+          {/* April 1 2024 = Monday = 1 offset in Sunday-start week */}
           <div className="grid grid-cols-7 gap-2">
-            <div /> {/* April starts on Monday */}
+            <div className="aspect-square" /> {/* Sunday empty slot */}
             {activityDays.map((day) => (
               <div
                 key={day.day}
                 title={`Apr ${day.day}: ${day.count} reports`}
-                className={cn("aspect-square rounded-lg cursor-pointer transition-all hover:scale-110 hover:ring-2 hover:ring-blue-400", getHeatColor(day.count))}
+                className={cn(
+                  "aspect-square rounded-md cursor-pointer transition-all hover:scale-110 hover:ring-2 hover:ring-blue-400 hover:ring-offset-1",
+                  getHeatColor(day.count)
+                )}
               />
             ))}
           </div>
-          <div className="flex items-center gap-2 mt-5 text-[10px] font-bold text-slate-400">
-            <span>Less</span>
-            {['bg-slate-100 dark:bg-slate-800','bg-blue-100 dark:bg-blue-900/40','bg-blue-300 dark:bg-blue-700/60','bg-blue-500','bg-blue-700 dark:bg-blue-400'].map((c,i) => (
-              <div key={i} className={cn("w-4 h-4 rounded-sm", c)} />
+          <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-slate-400">
+            <span>{t('analytics.less')}</span>
+            {['bg-slate-100 dark:bg-slate-800','bg-blue-100','bg-blue-300','bg-blue-500','bg-blue-700'].map((c,i) => (
+              <div key={i} className={cn('w-4 h-4 rounded-sm', c)} />
             ))}
-            <span>More</span>
+            <span>{t('analytics.more')}</span>
           </div>
         </div>
       </div>

@@ -19,6 +19,8 @@ export interface PotholeCluster {
   images: string[];
   notes?: string;
   assignedTeam?: string;
+  internalNotes?: string[];
+  deadline?: string;
 }
 
 export interface FilterState {
@@ -28,7 +30,8 @@ export interface FilterState {
   status: string;
   areaType: string;
   timeRange: string;
-  sortBy: 'priority' | 'date' | 'vehicles';
+  sortBy: 'priority' | 'date' | 'vehicles' | 'status';
+  sortHighPriority: boolean;
 }
 
 export interface KPIStats {
@@ -38,3 +41,26 @@ export interface KPIStats {
   avgResolutionTime: number;
   pendingSync: number;
 }
+
+export interface AppUser {
+  id: number;
+  name: string;
+  role: 'admin' | 'field_officer' | 'viewer';
+  zone: string;
+  email: string;
+  status: 'active' | 'offline' | 'inactive';
+  lastActive?: string;
+  assignedZone?: string;
+}
+
+export interface AlertItem {
+  id: string;
+  type: 'high_priority' | 'unresolved_7d' | 'queue_overflow' | 'system';
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  potholeId?: string;
+}
+
+export type SortDirection = 'asc' | 'desc';

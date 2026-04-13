@@ -4,6 +4,7 @@ import './globals.css';
 import Sidebar from '@/components/layout/sidebar';
 import Header from '@/components/layout/header';
 import AlertBanner from '@/components/layout/alert-banner';
+import AgentPanel from '@/components/dashboard/agent-panel';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { LanguageProvider } from '@/components/providers/language-provider';
 
@@ -32,6 +33,8 @@ export default function RootLayout({
                     {children}
                   </div>
                 </main>
+                {/* Global AI Assistant — available on every page */}
+                <AgentPanel />
               </div>
             </div>
           </LanguageProvider>

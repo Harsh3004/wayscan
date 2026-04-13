@@ -22,7 +22,20 @@
     "all_synced": "सभी सिंक हो गए",
     "toggle_light": "लाइट मोड",
     "toggle_dark": "डार्क मोड",
-    "toggle_lang": "Switch to English"
+    "toggle_lang": "Switch to English",
+    "notifications": "सूचनाएँ",
+    "new": "नई",
+    "mark_all_read": "सभी पढ़ी",
+    "date_range": "तिथि सीमा",
+    "from": "से",
+    "to": "तक",
+    "clear": "साफ़ करें",
+    "apply": "लागू करें",
+    "my_profile": "मेरी प्रोफ़ाइल",
+    "logout": "लॉग आउट",
+    "admin_label": "एडमिन",
+    "superuser": "सुपरयूज़र",
+    "pending": "लंबित"
   },
   "dashboard": {
     "overview": "डैशबोर्ड अवलोकन",
@@ -53,15 +66,16 @@
       "all": "सभी",
       "urban": "शहरी",
       "rural": "ग्रामीण",
+      "sort_priority": "क्रम: उच्च प्राथमिकता",
       "options": {
         "all_states": "सभी राज्य",
         "all_cities": "सभी शहर",
         "any_priority": "कोई भी प्राथमिकता",
         "all_status": "सभी स्थिति",
-        "lifetime": "आजीवन",
-        "last_24h": "पिछले 24 घंटे",
-        "last_7d": "पिछले 7 दिन",
-        "last_30d": "पिछले 30 दिन"
+        "lifetime": "सभी समय",
+        "last_24h": "24 घंटे",
+        "last_7d": "7 दिन",
+        "last_30d": "30 दिन"
       }
     },
     "map": {
@@ -81,8 +95,17 @@
       "title": "हाल की पहचान",
       "showing_reports": "{count} रिपोर्ट दिखा रहे हैं",
       "no_reports": "चयनित फ़िल्टर के लिए कोई रिपोर्ट नहीं मिली",
+      "no_results": "कोई परिणाम नहीं मिला",
       "reports": "रिपोर्ट्स",
-      "view_full_report": "पूरी रिपोर्ट देखें"
+      "results": "परिणाम",
+      "view_full_report": "पूरी रिपोर्ट देखें",
+      "sort_priority": "प्राथमिकता",
+      "sort_date": "दिनांक",
+      "sort_status": "स्थिति",
+      "sort_vehicles": "वाहन",
+      "rows": "पंक्तियाँ",
+      "search_placeholder": "स्थान, शहर खोजें…",
+      "vehicles_label": "वाहन"
     },
     "chart": {
       "title": "सिस्टम प्रदर्शन प्रवृत्ति",
@@ -92,7 +115,9 @@
       "repaired_issues": "मरम्मत की गई समस्याएँ",
       "ai_alert_threshold": "वर्तमान एआई अलर्ट सीमा",
       "target_sla": "लक्ष्य एसएलए (SLA)",
-      "download_report": "रिपोर्ट डाउनलोड करें"
+      "download_report": "रिपोर्ट डाउनलोड करें",
+      "weekly": "साप्ताहिक",
+      "monthly": "मासिक"
     },
     "modal": {
       "evidence": "साक्ष्य",
@@ -105,11 +130,18 @@
       "total_reports_sweded": "कुल रिपोर्ट संख्या",
       "first_detected": "पहली बार पहचाना गया",
       "assigned_team": "सौंपी गई टीम",
+      "assign_team": "टीम सौंपें",
       "unassigned": "असाइन नहीं किया गया",
       "admin_notes": "प्रशासनिक नोट्स",
+      "internal_notes": "आंतरिक नोट्स",
+      "add_note_placeholder": "आंतरिक नोट जोड़ें…",
       "no_notes": "अभी तक कोई प्रशासनिक नोट नहीं जोड़ा गया।",
       "change_status": "स्थिति बदलें",
       "dispatch_team": "टीम भेजें",
+      "mark_repaired": "मरम्मत हुई",
+      "dispatch": "डिस्पैच",
+      "share": "साझा करें",
+      "copied": "कॉपी हुआ!",
       "status": {
         "reported": "रिपोर्ट किया गया",
         "in_progress": "प्रगति पर है",
@@ -126,6 +158,7 @@
     "title": "प्राथमिकता स्थानिक दृश्य",
     "subtitle": "क्षेत्रीय नेटवर्क पर रीयल-टाइम क्लस्टर विज़ुअलाइज़ेशन",
     "live_data": "लाइव डेटा फ़ीड सक्रिय",
+    "markers": "मार्कर",
     "priority_schema": {
       "title": "प्राथमिकता योजना",
       "high": "उच्च कार्रवाई",
@@ -137,7 +170,15 @@
   "work_orders": {
     "title": "रखरखाव संचालन",
     "subtitle": "फील्ड टीमों और सक्रिय मरम्मत कार्यक्रम का प्रबंधन करें",
+    "export_csv": "CSV निर्यात करें",
     "export_pdf": "फ़ील्ड PDF निर्यात करें",
+    "bulk_assign": "सभी को सौंपें",
+    "mark_repaired": "मरम्मत हुई",
+    "done": "✓ पूर्ण",
+    "selected": "चयनित",
+    "filters": "फ़िल्टर",
+    "orders": "कार्य आदेश",
+    "assign_team_placeholder": "टीम को सौंपें…",
     "metrics": {
       "critical": "गंभीर कतार",
       "critical_desc": "तत्काल प्रेषण की आवश्यकता है",
@@ -149,13 +190,16 @@
     "search": "ऑर्डर खोजें...",
     "sort_date": "क्रमानुसार: दिनांक",
     "table": {
-      "location": "घटना स्थल",
+      "location": "स्थान",
       "priority": "प्राथमिकता",
-      "team": "सौंपी गई टीम",
+      "team": "टीम सौंपें",
       "detected": "जांच की गई",
       "actions": "कार्रवाइयाँ",
       "dispatch": "प्रेषण करें",
-      "pending": "लंबित"
+      "pending": "लंबित",
+      "any_priority": "कोई भी प्राथमिकता",
+      "all_status": "सभी स्थिति",
+      "all_teams": "सभी टीमें"
     }
   },
   "analytics": {
@@ -164,6 +208,17 @@
     "city_distribution": "शहरी वितरण",
     "view_all_cities": "सभी शहर देखें",
     "area_split": "क्षेत्र विभाजन",
+    "monthly_trend": "मासिक प्रवृत्ति",
+    "oct_apr": "अक्टू – अप्रैल",
+    "repair_rate_title": "मरम्मत दर",
+    "current_month": "वर्तमान माह",
+    "potholes_repaired": "गड्ढे मरम्मत किए गए",
+    "top_roads": "शीर्ष 10 खराब सड़कें",
+    "daily_activity": "दैनिक गतिविधि",
+    "daily_activity_subtitle": "अप्रैल 2024 — प्रतिदिन रिपोर्ट",
+    "response_time": "प्रतिक्रिया समय",
+    "less": "कम",
+    "more": "अधिक",
     "metrics": {
       "repair_rate": "मरम्मत दर",
       "active_reports": "सक्रिय रिपोर्ट",
@@ -194,6 +249,14 @@
     "title": "सिस्टम कॉन्फ़िगरेशन",
     "subtitle": "AI लॉजिक, क्षेत्रीय थ्रेशोल्ड और व्यवस्थापक प्राथमिकताएं समायोजित करें",
     "save_changes": "सभी परिवर्तन सहेजें",
+    "saved": "सहेजा गया!",
+    "city_mgmt": "शहर प्रबंधन",
+    "city_mgmt_subtitle": "प्रत्येक राज्य के लिए शहर जोड़ें या हटाएं",
+    "zone_mgmt": "क्षेत्र प्रबंधन",
+    "zone_mgmt_subtitle": "परिचालन क्षेत्र",
+    "add": "जोड़ें",
+    "new_zone_placeholder": "नया क्षेत्र नाम…",
+    "select_zone": "क्षेत्र चुनें…",
     "ai": {
       "title": "एज AI और क्लस्टरिंग",
       "subtitle": "YOLOv8 और DBSCAN पैरामीटर कॉन्फ़िगर करें",
@@ -240,12 +303,15 @@
       "headers": {
         "device_id": "डिवाइस आईडी",
         "current_zone": "वर्तमान क्षेत्र",
+        "last_sync": "अंतिम सिंक",
         "signal": "सिग्नल",
+        "battery": "बैटरी",
         "queue": "कतार",
         "actions": "कार्रवाइयाँ"
       },
       "reports": "रिपोर्ट",
-      "sync_now": "अभी सिंक करें"
+      "sync_now": "अभी सिंक करें",
+      "syncing": "सिंक हो रहा है…"
     }
   },
   "users": {
@@ -254,6 +320,19 @@
     "add_member": "नया टीम सदस्य जोड़ें",
     "search_placeholder": "नाम या क्षेत्र द्वारा सदस्यों को खोजें...",
     "manage_permissions": "अनुमतियां प्रबंधित करें",
+    "activity_log": "गतिविधि लॉग — अंतिम 50 क्रियाएं",
+    "activity_log_btn": "गतिविधि लॉग",
+    "add_modal_title": "नया सदस्य जोड़ें",
+    "add_modal_subtitle": "नया उपयोगकर्ता खाता बनाने के लिए विवरण भरें।",
+    "full_name": "पूरा नाम",
+    "email_address": "ईमेल पता",
+    "role_label": "भूमिका",
+    "assign_zone": "क्षेत्र सौंपें",
+    "cancel": "रद्द करें",
+    "create_user": "उपयोगकर्ता बनाएं",
+    "last_active": "अंतिम सक्रिय",
+    "reactivate": "पुनः सक्रिय करें",
+    "deactivate": "निष्क्रिय करें",
     "roles": {
       "admin": "व्यवस्थापक",
       "field_officer": "क्षेत्र अधिकारी",
@@ -261,14 +340,32 @@
     }
   },
   "data": {
+    "states": {
+      "Madhya Pradesh": "मध्य प्रदेश",
+      "Maharashtra": "महाराष्ट्र",
+      "Delhi": "दिल्ली",
+      "Karnataka": "कर्नाटक",
+      "Uttar Pradesh": "उत्तर प्रदेश"
+    },
     "cities": {
       "Mumbai": "मुंबई",
       "Delhi": "दिल्ली",
       "Bengaluru": "बेंगलुरु",
       "Jabalpur": "जबलपुर",
       "Lucknow": "लखनऊ",
+      "Bhopal": "भोपाल",
+      "Indore": "इंदौर",
+      "Gwalior": "ग्वालियर",
+      "Pune": "पुणे",
+      "Nagpur": "नागपुर",
+      "Nashik": "नाशिक",
+      "Mysuru": "मैसूरु",
+      "Hubli": "हुबली",
+      "Kanpur": "कानपुर",
+      "Varanasi": "वाराणसी",
+      "Agra": "आगरा",
       "Mumbai Metropolitan": "मुंबई मेट्रोपॉलिटन",
-      "National Capital Territory": "राष्ट्रीय राजधानी क्षेत्र (एनसीटी)",
+      "National Capital Territory": "राष्ट्रीय राजधानी क्षेत्र",
       "Jabalpur Division": "जबलपुर संभाग",
       "Lucknow Junction": "लखनऊ जंक्शन",
       "Mumbai West": "मुंबई पश्चिम",

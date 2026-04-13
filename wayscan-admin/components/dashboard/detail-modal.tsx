@@ -56,7 +56,7 @@ export default function DetailModal({ pothole, onClose, onStatusChange }: Detail
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-8">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-8">
       {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}

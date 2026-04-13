@@ -22,7 +22,20 @@
     "all_synced": "All Synced",
     "toggle_light": "Toggle Light Mode",
     "toggle_dark": "Toggle Dark Mode",
-    "toggle_lang": "हिंदी में बदलें"
+    "toggle_lang": "हिंदी में बदलें",
+    "notifications": "Notifications",
+    "new": "new",
+    "mark_all_read": "All read",
+    "date_range": "Date Range",
+    "from": "From",
+    "to": "To",
+    "clear": "Clear",
+    "apply": "Apply",
+    "my_profile": "My Profile",
+    "logout": "Logout",
+    "admin_label": "Admin",
+    "superuser": "Superuser",
+    "pending": "Pending"
   },
   "dashboard": {
     "overview": "Dashboard Overview",
@@ -53,15 +66,16 @@
       "all": "All",
       "urban": "Urban",
       "rural": "Rural",
+      "sort_priority": "Sort: Highest Priority",
       "options": {
         "all_states": "All States",
         "all_cities": "All Cities",
         "any_priority": "Any Priority",
         "all_status": "All Status",
-        "lifetime": "Lifetime",
-        "last_24h": "Last 24 Hours",
-        "last_7d": "Last 7 Days",
-        "last_30d": "Last 30 Days"
+        "lifetime": "All Time",
+        "last_24h": "24h",
+        "last_7d": "7 Days",
+        "last_30d": "30 Days"
       }
     },
     "map": {
@@ -81,8 +95,17 @@
       "title": "Recent Detections",
       "showing_reports": "Showing {count} reports",
       "no_reports": "No reports found for selected filters",
+      "no_results": "No results found",
       "reports": "reports",
-      "view_full_report": "View Full Report"
+      "results": "results",
+      "view_full_report": "View Full Report",
+      "sort_priority": "Priority",
+      "sort_date": "Date",
+      "sort_status": "Status",
+      "sort_vehicles": "Vehicles",
+      "rows": "Rows",
+      "search_placeholder": "Search location, city…",
+      "vehicles_label": "vehicles"
     },
     "chart": {
       "title": "System Performance Trend",
@@ -92,7 +115,9 @@
       "repaired_issues": "Repaired Issues",
       "ai_alert_threshold": "Current AI Alert Threshold",
       "target_sla": "Target SLA",
-      "download_report": "Download Report"
+      "download_report": "Download Report",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
     },
     "modal": {
       "evidence": "Evidence",
@@ -102,14 +127,21 @@
       "unique_vehicles": "Unique Vehicles",
       "primary_driver": "Primary Priority Driver",
       "incident_cluster": "Incident Cluster",
-      "total_reports_sweded": "Total Reports Sweded",
+      "total_reports_sweded": "Total Reports",
       "first_detected": "First Detected",
       "assigned_team": "Assigned Team",
+      "assign_team": "Assign Team",
       "unassigned": "Unassigned",
       "admin_notes": "Administrative Notes",
+      "internal_notes": "Internal Notes",
+      "add_note_placeholder": "Add internal note…",
       "no_notes": "No administrative notes added yet.",
       "change_status": "Change Status",
       "dispatch_team": "Dispatch Team",
+      "mark_repaired": "Repaired",
+      "dispatch": "Dispatch",
+      "share": "Share",
+      "copied": "Copied!",
       "status": {
         "reported": "Reported",
         "in_progress": "In Progress",
@@ -126,6 +158,7 @@
     "title": "Priority Spatial View",
     "subtitle": "Real-time cluster visualization across regional networks",
     "live_data": "Live Data Feed Active",
+    "markers": "markers",
     "priority_schema": {
       "title": "Priority Schema",
       "high": "High Action",
@@ -137,7 +170,15 @@
   "work_orders": {
     "title": "Maintenance Ops",
     "subtitle": "Manage field teams and active repair schedules",
+    "export_csv": "Export CSV",
     "export_pdf": "Export Field PDF",
+    "bulk_assign": "Assign All",
+    "mark_repaired": "Repaired",
+    "done": "✓ Done",
+    "selected": "selected",
+    "filters": "Filters",
+    "orders": "orders",
+    "assign_team_placeholder": "Assign to team…",
     "metrics": {
       "critical": "Critical Queue",
       "critical_desc": "Requires immediate dispatch",
@@ -149,13 +190,16 @@
     "search": "Search orders...",
     "sort_date": "Sort by: Date",
     "table": {
-      "location": "Incident Location",
+      "location": "Location",
       "priority": "Priority",
-      "team": "Assigned Team",
+      "team": "Assign Team",
       "detected": "Detected",
       "actions": "Actions",
       "dispatch": "Dispatch",
-      "pending": "PENDING"
+      "pending": "PENDING",
+      "any_priority": "Any Priority",
+      "all_status": "All Status",
+      "all_teams": "All Teams"
     }
   },
   "analytics": {
@@ -164,6 +208,17 @@
     "city_distribution": "City Distribution",
     "view_all_cities": "View All Cities",
     "area_split": "Area Split",
+    "monthly_trend": "Monthly Trend",
+    "oct_apr": "Oct – Apr",
+    "repair_rate_title": "Repair Rate",
+    "current_month": "Current month",
+    "potholes_repaired": "Potholes Repaired",
+    "top_roads": "Top 10 Worst Roads",
+    "daily_activity": "Daily Activity",
+    "daily_activity_subtitle": "April 2024 — Reports per day",
+    "response_time": "Response Time",
+    "less": "Less",
+    "more": "More",
     "metrics": {
       "repair_rate": "Repair Rate",
       "active_reports": "Active Reports",
@@ -194,6 +249,14 @@
     "title": "System Configuration",
     "subtitle": "Adjust AI logic, regional thresholds and admin preferences",
     "save_changes": "Save All Changes",
+    "saved": "Saved!",
+    "city_mgmt": "City Management",
+    "city_mgmt_subtitle": "Add or remove cities per state",
+    "zone_mgmt": "Zone Management",
+    "zone_mgmt_subtitle": "Operational zones",
+    "add": "Add",
+    "new_zone_placeholder": "New zone name…",
+    "select_zone": "Select zone…",
     "ai": {
       "title": "Edge AI & Clustering",
       "subtitle": "Configure YOLOv8 and DBSCAN parameters",
@@ -240,12 +303,15 @@
       "headers": {
         "device_id": "Device ID",
         "current_zone": "Current Zone",
+        "last_sync": "Last Sync",
         "signal": "Signal",
+        "battery": "Battery",
         "queue": "Queue",
         "actions": "Actions"
       },
       "reports": "Reports",
-      "sync_now": "SYNC NOW"
+      "sync_now": "SYNC NOW",
+      "syncing": "Syncing…"
     }
   },
   "users": {
@@ -254,6 +320,19 @@
     "add_member": "Add New Team Member",
     "search_placeholder": "Search members by name or zone...",
     "manage_permissions": "Manage Permissions",
+    "activity_log": "Activity Log — Last 50 Actions",
+    "activity_log_btn": "Activity Log",
+    "add_modal_title": "Add New Member",
+    "add_modal_subtitle": "Fill in details to create a new user account.",
+    "full_name": "Full Name",
+    "email_address": "Email Address",
+    "role_label": "Role",
+    "assign_zone": "Assign Zone",
+    "cancel": "Cancel",
+    "create_user": "Create User",
+    "last_active": "Last active",
+    "reactivate": "Reactivate",
+    "deactivate": "Deactivate",
     "roles": {
       "admin": "Admin",
       "field_officer": "Field Officer",
@@ -261,12 +340,30 @@
     }
   },
   "data": {
+    "states": {
+      "Madhya Pradesh": "Madhya Pradesh",
+      "Maharashtra": "Maharashtra",
+      "Delhi": "Delhi",
+      "Karnataka": "Karnataka",
+      "Uttar Pradesh": "Uttar Pradesh"
+    },
     "cities": {
       "Mumbai": "Mumbai",
       "Delhi": "Delhi",
       "Bengaluru": "Bengaluru",
       "Jabalpur": "Jabalpur",
       "Lucknow": "Lucknow",
+      "Bhopal": "Bhopal",
+      "Indore": "Indore",
+      "Gwalior": "Gwalior",
+      "Pune": "Pune",
+      "Nagpur": "Nagpur",
+      "Nashik": "Nashik",
+      "Mysuru": "Mysuru",
+      "Hubli": "Hubli",
+      "Kanpur": "Kanpur",
+      "Varanasi": "Varanasi",
+      "Agra": "Agra",
       "Mumbai Metropolitan": "Mumbai Metropolitan",
       "National Capital Territory": "National Capital Territory",
       "Jabalpur Division": "Jabalpur Division",

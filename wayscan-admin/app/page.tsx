@@ -13,11 +13,15 @@ import { PotholeCluster, FilterState, Status } from '@/lib/types';
 import { LayoutGrid, Map as MapIcon, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/components/providers/language-provider';
+import { Navigation } from 'lucide-react';
 
-// Dynamically import map to avoid SSR issues
 const PriorityMap = dynamic(() => import('@/components/dashboard/priority-map'), { 
   ssr: false,
-  loading: () => <div className="w-full h-full bg-slate-100 rounded-3xl animate-pulse flex items-center justify-center text-slate-400 font-bold">Loading Map View...</div>
+  loading: () => (
+    <div className="w-full h-full bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse flex flex-col items-center justify-center border border-slate-200 dark:border-slate-700">
+      <Navigation className="w-8 h-8 text-slate-300 dark:text-slate-600 animate-bounce" />
+    </div>
+  )
 });
 
 export default function OverviewPage() {
@@ -31,6 +35,7 @@ export default function OverviewPage() {
     areaType: 'all',
     timeRange: 'all',
     sortBy: 'priority',
+    sortHighPriority: false,
   });
 
   const [selectedPothole, setSelectedPothole] = useState<PotholeCluster | null>(null);
@@ -56,14 +61,20 @@ export default function OverviewPage() {
       data = data.filter(p => new Date(p.firstDetected) >= cutoff);
     }
 
-    // Sort logic
-    if (filters.sortBy === 'priority') {
+    // Sort logic — sortHighPriority overrides sortBy
+    if (filters.sortHighPriority) {
+      const order = { high: 0, medium: 1, low: 2 };
+      data.sort((a, b) => order[a.priority] - order[b.priority]);
+    } else if (filters.sortBy === 'priority') {
       const order = { high: 0, medium: 1, low: 2 };
       data.sort((a, b) => order[a.priority] - order[b.priority]);
     } else if (filters.sortBy === 'date') {
       data.sort((a, b) => new Date(b.firstDetected).getTime() - new Date(a.firstDetected).getTime());
     } else if (filters.sortBy === 'vehicles') {
       data.sort((a, b) => b.uniqueVehicleCount - a.uniqueVehicleCount);
+    } else if (filters.sortBy === 'status') {
+      const sOrder = { reported: 0, 'in-progress': 1, repaired: 2 };
+      data.sort((a, b) => sOrder[a.status] - sOrder[b.status]);
     }
 
     return data;

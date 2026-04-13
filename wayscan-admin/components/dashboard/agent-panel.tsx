@@ -8,9 +8,9 @@ import { Mic, Send, X, Bot, Loader2 } from 'lucide-react';
 import { FilterState } from '@/lib/types';
 
 interface AgentPanelProps {
-  onUpdateFilters: (filters: Partial<FilterState>) => void;
-  onSetMapCenter: (lat: number, lng: number) => void;
-  onSelectPothole: (id: string) => void;
+  onUpdateFilters?: (filters: Partial<FilterState>) => void;
+  onSetMapCenter?: (lat: number, lng: number) => void;
+  onSelectPothole?: (id: string) => void;
 }
 
 export default function AgentPanel({ onUpdateFilters, onSetMapCenter, onSelectPothole }: AgentPanelProps) {
@@ -35,11 +35,11 @@ export default function AgentPanel({ onUpdateFilters, onSetMapCenter, onSelectPo
         if (args.state) newFilters.state = args.state;
         if (args.status) newFilters.status = args.status;
         if (args.areaType) newFilters.areaType = args.areaType;
-        onUpdateFilters(newFilters);
+        onUpdateFilters?.(newFilters);
       } else if (toolCall.toolName === 'setMapCenter') {
-        onSetMapCenter(args.lat, args.lng);
+        onSetMapCenter?.(args.lat, args.lng);
       } else if (toolCall.toolName === 'selectPothole') {
-        onSelectPothole(args.id);
+        onSelectPothole?.(args.id);
       }
     },
     onFinish: (event: any) => {

@@ -1,4 +1,23 @@
-import { PotholeCluster } from './types';
+import { PotholeCluster, AppUser, AlertItem } from './types';
+
+// State → City mapping for dynamic filter
+export const STATE_CITY_MAP: Record<string, string[]> = {
+  'Madhya Pradesh': ['Jabalpur', 'Bhopal', 'Indore', 'Gwalior'],
+  'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik'],
+  'Delhi': ['Delhi'],
+  'Karnataka': ['Bengaluru', 'Mysuru', 'Hubli'],
+  'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Varanasi', 'Agra'],
+};
+
+export const FIELD_TEAMS = [
+  'MP-Works-Alpha',
+  'MP-Works-Delta',
+  'MH-Roads-Bravo',
+  'MH-Roads-Gamma',
+  'DL-PWD-Central',
+  'KA-Roads-Sierra',
+  'UP-Works-Tango',
+];
 
 export const potholes: PotholeCluster[] = [
   {
@@ -15,8 +34,10 @@ export const potholes: PotholeCluster[] = [
     totalReports: 28,
     firstDetected: '2024-04-01T08:30:00Z',
     lastDetected: '2024-04-12T17:45:00Z',
-    images: ['https://pothole.io/p1.jpg', 'https://pothole.io/p1-2.jpg'],
+    images: ['https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=1470&auto=format&fit=crop'],
     notes: 'Severe damage near high-traffic junction.',
+    internalNotes: ['Contractor notified on April 3', 'Material ordered'],
+    deadline: '2024-04-20T00:00:00Z',
   },
   {
     id: '2',
@@ -32,8 +53,9 @@ export const potholes: PotholeCluster[] = [
     totalReports: 12,
     firstDetected: '2024-04-03T10:15:00Z',
     lastDetected: '2024-04-11T12:00:00Z',
-    images: ['https://pothole.io/p2.jpg'],
+    images: ['https://images.unsplash.com/photo-1619252584172-a83a949b6efd?q=80&w=1470&auto=format&fit=crop'],
     assignedTeam: 'MP-Works-Delta',
+    deadline: '2024-04-18T00:00:00Z',
   },
   {
     id: '3',
@@ -49,7 +71,8 @@ export const potholes: PotholeCluster[] = [
     totalReports: 52,
     firstDetected: '2024-04-05T06:00:00Z',
     lastDetected: '2024-04-13T09:30:00Z',
-    images: ['https://pothole.io/p3.jpg'],
+    images: ['https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=1470&auto=format&fit=crop'],
+    deadline: '2024-04-15T00:00:00Z',
   },
   {
     id: '4',
@@ -65,7 +88,8 @@ export const potholes: PotholeCluster[] = [
     totalReports: 15,
     firstDetected: '2024-03-25T14:20:00Z',
     lastDetected: '2024-04-05T11:10:00Z',
-    images: ['https://pothole.io/p4.jpg'],
+    images: ['https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1471&auto=format&fit=crop'],
+    assignedTeam: 'MH-Roads-Bravo',
   },
   {
     id: '5',
@@ -81,7 +105,8 @@ export const potholes: PotholeCluster[] = [
     totalReports: 3,
     firstDetected: '2024-04-10T11:45:00Z',
     lastDetected: '2024-04-12T15:20:00Z',
-    images: ['https://pothole.io/p5.jpg'],
+    images: ['https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=1374&auto=format&fit=crop'],
+    deadline: '2024-04-25T00:00:00Z',
   },
   {
     id: '6',
@@ -97,7 +122,9 @@ export const potholes: PotholeCluster[] = [
     totalReports: 36,
     firstDetected: '2024-04-02T16:30:00Z',
     lastDetected: '2024-04-13T08:00:00Z',
-    images: ['https://pothole.io/p6.jpg'],
+    images: ['https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=1470&auto=format&fit=crop'],
+    assignedTeam: 'KA-Roads-Sierra',
+    deadline: '2024-04-16T00:00:00Z',
   },
   {
     id: '7',
@@ -113,7 +140,8 @@ export const potholes: PotholeCluster[] = [
     totalReports: 20,
     firstDetected: '2024-04-08T09:00:00Z',
     lastDetected: '2024-04-12T14:00:00Z',
-    images: ['https://pothole.io/p7.jpg'],
+    images: ['https://images.unsplash.com/photo-1619252584172-a83a949b6efd?q=80&w=1470&auto=format&fit=crop'],
+    deadline: '2024-04-22T00:00:00Z',
   },
   {
     id: '8',
@@ -129,8 +157,44 @@ export const potholes: PotholeCluster[] = [
     totalReports: 14,
     firstDetected: '2024-04-09T18:00:00Z',
     lastDetected: '2024-04-13T10:15:00Z',
-    images: ['https://pothole.io/p8.jpg'],
-  }
+    images: ['https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=1374&auto=format&fit=crop'],
+    deadline: '2024-04-21T00:00:00Z',
+  },
+  {
+    id: '9',
+    lat: 18.5204,
+    lng: 73.8567,
+    locationName: 'Pune Nagar Road, Yerwada',
+    city: 'Pune',
+    state: 'Maharashtra',
+    priority: 'high',
+    status: 'reported',
+    areaType: 'urban',
+    uniqueVehicleCount: 21,
+    totalReports: 44,
+    firstDetected: '2024-04-06T07:45:00Z',
+    lastDetected: '2024-04-13T11:00:00Z',
+    images: ['https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=1470&auto=format&fit=crop'],
+    deadline: '2024-04-17T00:00:00Z',
+  },
+  {
+    id: '10',
+    lat: 23.3315,
+    lng: 77.4116,
+    locationName: 'Arera Colony, Bhopal',
+    city: 'Bhopal',
+    state: 'Madhya Pradesh',
+    priority: 'low',
+    status: 'in-progress',
+    areaType: 'rural',
+    uniqueVehicleCount: 3,
+    totalReports: 6,
+    firstDetected: '2024-04-11T13:30:00Z',
+    lastDetected: '2024-04-13T09:00:00Z',
+    images: ['https://images.unsplash.com/photo-1622393797842-e614eb012551?q=80&w=1470&auto=format&fit=crop'],
+    assignedTeam: 'MP-Works-Alpha',
+    deadline: '2024-04-28T00:00:00Z',
+  },
 ];
 
 export const mockDashboardStats = {
@@ -145,3 +209,79 @@ export const mockDashboardStats = {
   pendingSync: 23,
   pendingSyncSparkline: [10, 15, 18, 12, 25, 20, 23],
 };
+
+export const mockAlerts: AlertItem[] = [
+  {
+    id: 'a1',
+    type: 'high_priority',
+    title: 'High Priority Detected',
+    message: 'Sion-Panvel Highway has 25+ vehicle detections. Immediate action required.',
+    timestamp: '2024-04-13T09:31:00Z',
+    read: false,
+    potholeId: '3',
+  },
+  {
+    id: 'a2',
+    type: 'unresolved_7d',
+    title: 'Unresolved for 7+ Days',
+    message: 'Wright Town, Near Stadium has been unresolved for 12 days.',
+    timestamp: '2024-04-13T08:00:00Z',
+    read: false,
+    potholeId: '1',
+  },
+  {
+    id: 'a3',
+    type: 'queue_overflow',
+    title: 'Sync Queue Overflow',
+    message: 'Offline queue has crossed 50 reports. Force sync recommended.',
+    timestamp: '2024-04-12T23:00:00Z',
+    read: true,
+  },
+  {
+    id: 'a4',
+    type: 'high_priority',
+    title: 'High Priority Detected',
+    message: 'Indiranagar 100ft Road: 18 vehicles in 24 hours.',
+    timestamp: '2024-04-13T07:00:00Z',
+    read: true,
+    potholeId: '6',
+  },
+  {
+    id: 'a5',
+    type: 'system',
+    title: 'Scheduled Maintenance',
+    message: 'System backup scheduled for tonight 02:00 AM IST.',
+    timestamp: '2024-04-12T18:00:00Z',
+    read: true,
+  },
+];
+
+export const mockUsers: AppUser[] = [
+  { id: 1, name: 'Anjali Sharma', role: 'admin', zone: 'Jabalpur HQ', email: 'anjali@wayscan.gov.in', status: 'active', lastActive: '2024-04-13T10:00:00Z', assignedZone: 'Jabalpur Division' },
+  { id: 2, name: 'Vikram Singh', role: 'field_officer', zone: 'Mumbai West', email: 'vikram@wayscan.gov.in', status: 'active', lastActive: '2024-04-13T09:45:00Z', assignedZone: 'Mumbai Metropolitan' },
+  { id: 3, name: 'Rahul Verma', role: 'field_officer', zone: 'Delhi Central', email: 'rahul@wayscan.gov.in', status: 'offline', lastActive: '2024-04-12T16:00:00Z', assignedZone: 'National Capital Territory' },
+  { id: 4, name: 'Priya Das', role: 'viewer', zone: 'National Council', email: 'priya@wayscan.gov.in', status: 'active', lastActive: '2024-04-13T11:00:00Z', assignedZone: 'National Council' },
+  { id: 5, name: 'Suresh Nair', role: 'field_officer', zone: 'Bengaluru South', email: 'suresh@wayscan.gov.in', status: 'inactive', lastActive: '2024-04-10T08:30:00Z', assignedZone: 'KA-Roads Zone' },
+];
+
+export const mockActivityLog = [
+  { id: 1, user: 'Anjali Sharma', action: 'Changed status of Wright Town to In-Progress', timestamp: '2024-04-13T10:05:00Z' },
+  { id: 2, user: 'Vikram Singh', action: 'Assigned Sion-Panvel Highway to MH-Roads-Bravo', timestamp: '2024-04-13T09:50:00Z' },
+  { id: 3, user: 'Anjali Sharma', action: 'Added new user: Suresh Nair', timestamp: '2024-04-13T09:30:00Z' },
+  { id: 4, user: 'Rahul Verma', action: 'Marked Janpath Road as Repaired', timestamp: '2024-04-12T16:10:00Z' },
+  { id: 5, user: 'Priya Das', action: 'Exported Work Orders CSV', timestamp: '2024-04-12T15:40:00Z' },
+  { id: 6, user: 'Anjali Sharma', action: 'Updated AI confidence threshold to 0.8', timestamp: '2024-04-12T14:00:00Z' },
+  { id: 7, user: 'Vikram Singh', action: 'Force-synced device WS-992', timestamp: '2024-04-12T13:00:00Z' },
+  { id: 8, user: 'Anjali Sharma', action: 'Marked all alerts as read', timestamp: '2024-04-12T12:00:00Z' },
+];
+
+export const ZONES = [
+  'Jabalpur Division',
+  'Bhopal Zone',
+  'Mumbai Metropolitan',
+  'Pune District',
+  'National Capital Territory',
+  'KA-Roads Zone',
+  'Lucknow Junction',
+  'National Council',
+];
