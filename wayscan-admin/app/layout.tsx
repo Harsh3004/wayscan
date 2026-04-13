@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Sidebar from '@/components/layout/sidebar';
 import Header from '@/components/layout/header';
+import AlertBanner from '@/components/layout/alert-banner';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { LanguageProvider } from '@/components/providers/language-provider';
 
@@ -25,6 +26,7 @@ export default function RootLayout({
               <Sidebar />
               <div className="flex flex-col flex-1 overflow-hidden relative">
                 <Header />
+                <AlertBanner />
                 <main className="flex-1 overflow-y-auto p-4 md:p-8 pt-6">
                   <div className="max-w-[1600px] mx-auto space-y-6">
                     {children}
