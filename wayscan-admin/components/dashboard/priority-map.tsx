@@ -59,6 +59,22 @@ function MapController({
   return null;
 }
 
+// ─── Map Resizer: Fixes the gray tiles issue with Framer Motion ────────
+function MapResizer() {
+  const map = useMap();
+  
+  useEffect(() => {
+    // Force Leaflet to recalculate its size after framer-motion animations finish
+    const timeoutId = setTimeout(() => {
+      map.invalidateSize();
+    }, 400);
+
+    return () => clearTimeout(timeoutId);
+  }, [map]);
+
+  return null;
+}
+
 export default function PriorityMap({
   data,
   selectedId,
@@ -148,6 +164,9 @@ export default function PriorityMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxZoom={19}
         />
+
+        {/* This MapResizer fixes the empty gray tile issue */}
+        <MapResizer />
 
         <MapController
           center={mapCenter}
