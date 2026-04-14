@@ -1,77 +1,75 @@
-import { convertToModelMessages, stepCountIs, streamText, tool, validateUIMessages } from 'ai';
-import { z } from 'zod';
 import { createGroq } from '@ai-sdk/groq';
+import { convertToModelMessages, streamText } from 'ai';
+import { buildCompactDashboardChatContext, buildDashboardChatContext } from '@/lib/chat-context';
+import { mockDashboardStats, potholes } from '@/lib/mock-data';
 
 export const maxDuration = 30;
 
 const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 
+function normalizeMessages(messages: unknown[]): unknown[] {
+  return messages
+    .map((message: any) => {
+      if (!message || typeof message !== 'object') {
+        return null;
+      }
+
+      if (Array.isArray(message.parts)) {
+        return message;
+      }
+
+      const text = typeof message.content === 'string'
+        ? message.content
+        : typeof message.text === 'string'
+          ? message.text
+          : '';
+
+      return {
+        ...message,
+        content: text,
+        parts: text ? [{ type: 'text', text }] : [],
+      };
+    })
+    .filter(Boolean);
+}
+
+function buildSystemPrompt(dashboardContext: unknown): string {
+  return [
+    'You are the WayScan dashboard assistant.',
+    'Answer questions using the dashboard snapshot below.',
+    'Keep responses short, speakable, and direct. Use one or two short sentences.',
+    'Use stats.totalActive as the authoritative active pothole total.',
+    'Use stats.criticalHazards, stats.repairedThisMonth, stats.avgResolutionTime, and stats.pendingSync for KPI questions.',
+    'Use recentDetections, criticalPotholes, cityBreakdown, and potholeClusters for pothole-specific questions and city summaries.',
+    'When asked about a specific pothole, mention its location, city, priority, status, reports, vehicles, and lastDetected when available.',
+    'If the snapshot does not contain the answer, say you do not have that detail.',
+    '',
+    'Dashboard snapshot:',
+    JSON.stringify(dashboardContext),
+  ].join('\n');
+}
+
 export async function POST(req: Request) {
   try {
-    const { messages = [] } = await req.json();
-
-    const tools = {
-      updateFilters: tool({
-        description: 'Update the dashboard filters (priority, city, state, area type). If a user asks to see high priority items, you must call this.',
-        inputSchema: z.object({
-          priority: z.enum(['all', 'high', 'medium', 'low']).optional(),
-          city: z.string().optional(),
-          state: z.string().optional(),
-          status: z.enum(['all', 'reported', 'in-progress', 'repaired']).optional(),
-          areaType: z.enum(['all', 'urban', 'rural']).optional(),
-        }),
-        execute: async ({ priority, city, state, status, areaType }) => {
-          const activeFilters = [
-            priority ? `priority ${priority}` : null,
-            city ? `city ${city}` : null,
-            state ? `state ${state}` : null,
-            status ? `status ${status}` : null,
-            areaType ? `area type ${areaType}` : null,
-          ].filter(Boolean);
-
-          return activeFilters.length > 0
-            ? `Applied filters: ${activeFilters.join(', ')}.`
-            : 'Filters updated.';
-        },
-      }),
-      setMapCenter: tool({
-        description: 'Change the map center to a new [lat, lng] coordinate. Use this to focus the map on a target city.',
-        inputSchema: z.object({
-          lat: z.number().describe('Latitude coordinate'),
-          lng: z.number().describe('Longitude coordinate'),
-        }),
-        execute: async ({ lat, lng }) => `Map centered to ${lat}, ${lng}.`,
-      }),
-      selectPothole: tool({
-        description: 'Open the detail view for a specific pothole ID.',
-        inputSchema: z.object({
-          id: z.string(),
-        }),
-        execute: async ({ id }) => `Selected pothole ${id}.`,
-      }),
-    } as any;
-
-    const validatedMessages = await validateUIMessages({
-      messages,
-      tools,
-    });
+    const body = await req.json();
+    const messages = Array.isArray(body?.messages) ? body.messages : [];
+    const normalizedMessages = normalizeMessages(messages);
+    const dashboardContext =
+      body?.dashboardContext && typeof body.dashboardContext === 'object'
+        ? body.dashboardContext
+        : buildDashboardChatContext(potholes, mockDashboardStats);
+    const compactDashboardContext = buildCompactDashboardChatContext(dashboardContext as any);
 
     const result = streamText({
       model: groq('llama-3.1-8b-instant'),
-      stopWhen: stepCountIs(5),
-      system: `You are the WayScan dashboard assistant. You can intelligently apply filters, center the dashboard map, and extract context from the dashboard data.
-      IMPORTANT: You should respond CONCISELY. Avoid writing bulleted lists or rich markdown because your response might be read ALOUD using Text-to-Speech to the user.
-      When the user asks to filter or change map views, ALWAYS invoke the appropriate tool.
-      For reference, Mumbai is located at [19.0760, 72.8777], Delhi at [28.6139, 77.2090], Bangalore/Bengaluru at [12.9716, 77.5946], Jabalpur at [23.1815, 79.9864].`,
-      messages: await convertToModelMessages(validatedMessages, {
-        tools,
-        ignoreIncompleteToolCalls: true,
-      }),
-      tools,
+      temperature: 0.2,
+      maxOutputTokens: 120,
+      system: buildSystemPrompt(compactDashboardContext),
+      messages: await convertToModelMessages(normalizedMessages as any),
     });
 
     return result.toUIMessageStreamResponse({
-      originalMessages: validatedMessages,
+      originalMessages: messages,
       onError: (error) => {
         if (error instanceof Error) {
           console.error('Chat stream error:', error.message);

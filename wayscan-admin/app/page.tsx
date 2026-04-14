@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import KPICards from '@/components/dashboard/kpi-cards';
 import FilterPanel from '@/components/dashboard/filter-panel';
 import SummaryTable from '@/components/dashboard/summary-table';
 import DetailModal from '@/components/dashboard/detail-modal';
 import TrendChart from '@/components/dashboard/trend-chart';
-import AgentPanel from '@/components/dashboard/agent-panel';
 import dynamic from 'next/dynamic';
 import { potholes as allPotholes } from '@/lib/mock-data';
+import { mockDashboardStats } from '@/lib/mock-data';
+import { buildDashboardChatContext } from '@/lib/chat-context';
+import { useDashboardChatContext } from '@/components/dashboard/chat-context-provider';
 import { PotholeCluster, FilterState, Status } from '@/lib/types';
 import { LayoutGrid, Map as MapIcon, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,6 +28,7 @@ const PriorityMap = dynamic(() => import('@/components/dashboard/priority-map'),
 
 export default function OverviewPage() {
   const { t } = useLanguage();
+  const { setDashboardChatContext } = useDashboardChatContext();
   
   const [filters, setFilters] = useState<FilterState>({
     state: 'all',
@@ -42,6 +45,18 @@ export default function OverviewPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [potholeData, setPotholeData] = useState(allPotholes);
   const [mapCustomCenter, setMapCustomCenter] = useState<[number, number] | null>(null);
+  const dashboardContext = useMemo(
+    () => buildDashboardChatContext(potholeData, mockDashboardStats),
+    [potholeData],
+  );
+
+  useEffect(() => {
+    setDashboardChatContext(dashboardContext);
+
+    return () => {
+      setDashboardChatContext(null);
+    };
+  }, [dashboardContext, setDashboardChatContext]);
 
   const filteredData = useMemo(() => {
     let data = [...potholeData];
@@ -120,11 +135,13 @@ export default function OverviewPage() {
         </motion.div>
         
         <div className="flex items-center gap-3">
-           <div className="flex flex-col items-end leading-tight mr-2 hidden sm:flex">
-             <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase">{t('dashboard.kpi.online')}</span>
-             <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('dashboard.kpi.active_vehicles')}</span>
-           </div>
-           <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-sm shadow-emerald-200" />
+          <div className="mr-2 hidden sm:block">
+            <div className="flex flex-col items-end leading-tight">
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase">{t('dashboard.kpi.online')}</span>
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('dashboard.kpi.active_vehicles')}</span>
+            </div>
+          </div>
+          <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-sm shadow-emerald-200" />
         </div>
       </div>
 
@@ -191,11 +208,6 @@ export default function OverviewPage() {
         )}
       </AnimatePresence>
 
-      <AgentPanel 
-        onUpdateFilters={handleUpdateFilters} 
-        onSetMapCenter={(lat, lng) => setMapCustomCenter([lat, lng])} 
-        onSelectPothole={handleSelectPothole} 
-      />
     </div>
   );
 }
