@@ -335,5 +335,58 @@ def dashboard_trends():
         weeks.insert(0, {"week": f"W{4-i}", "reported": reported, "repaired": repaired})
     return jsonify({"weekly": weeks})
 
+@app.route("/analytics/cities", methods=["GET"])
+@optional_auth
+def analytics_cities():
+    pipeline = [
+        {"$group": {"_id": "$city", "count": {"$sum": "$report_count"}}},
+        {"$sort": {"count": -1}}
+    ]
+    result = list(clusters.aggregate(pipeline))
+    return jsonify({
+        "data": [{"name": r["_id"] or "Unknown", "count": r["count"]} for r in result]
+    })
+
+@app.route("/analytics/monthly", methods=["GET"])
+@optional_auth
+def analytics_monthly():
+    months = []
+    now = time.time()
+    for i in range(6):
+        month_start = now - (i + 1) * 30 * 24 * 60 * 60
+        month_end = now - i * 30 * 24 * 60 * 60
+        created = clusters.count_documents({"created_at": {"$gte": month_start, "$lt": month_end}})
+        resolved = clusters.count_documents({"status": "RESOLVED", "updated_at": {"$gte": month_start, "$lt": month_end}})
+        months.insert(0, {"month": f"M{6-i}", "reported": created, "resolved": resolved})
+    return jsonify({"data": months})
+
+@app.route("/analytics/priority-distribution", methods=["GET"])
+@optional_auth
+def analytics_priority():
+    high = clusters.count_documents({"priority": {"$gte": 100}})
+    medium = clusters.count_documents({"priority": {"$gte": 50, "$lt": 100}})
+    low = clusters.count_documents({"priority": {"$lt": 50}})
+    return jsonify({
+        "data": [
+            {"name": "High", "count": high, "color": "#ef4444"},
+            {"name": "Medium", "count": medium, "color": "#f97316"},
+            {"name": "Low", "count": low, "color": "#10b981"}
+        ]
+    })
+
+@app.route("/analytics/status-distribution", methods=["GET"])
+@optional_auth
+def analytics_status():
+    open_count = clusters.count_documents({"status": "OPEN"})
+    in_progress = clusters.count_documents({"status": "IN_PROGRESS"})
+    resolved = clusters.count_documents({"status": "RESOLVED"})
+    return jsonify({
+        "data": [
+            {"name": "Open", "count": open_count, "color": "#ef4444"},
+            {"name": "In Progress", "count": in_progress, "color": "#3b82f6"},
+            {"name": "Resolved", "count": resolved, "color": "#10b981"}
+        ]
+    })
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

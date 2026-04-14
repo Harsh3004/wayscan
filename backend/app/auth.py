@@ -21,7 +21,7 @@ def decode_token(token: str) -> dict | None:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except jwt.ExpiredSignatureError:st
+    except jwt.ExpiredSignatureError:
         return None
     except jwt.InvalidTokenError:
         return None
