@@ -87,7 +87,7 @@ def sync():
 def cluster_data():
     all_detections = list(detections.find({"processed": False}, {"_id": 0}))
 
-    if len(all_detections) < 2:
+    if len(all_detections) <0:
         return jsonify({"message": "Not enough data"}), 200
 
     cluster_groups = dbscan_clus(all_detections)
@@ -144,7 +144,7 @@ def cluster_data():
 
     return jsonify({"message": "Clusters updated"})
 
-def get_clusters():
+'''def get_clusters():
     status = request.args.get("status")
     
     query = {}
@@ -154,7 +154,7 @@ def get_clusters():
     data = list(clusters.find(query, {"_id": 0}).sort("priority", -1))
 
     return jsonify(data)
-
+'''
 
 
 @app.route("/cluster/<cluster_id>", methods=["GET"])
