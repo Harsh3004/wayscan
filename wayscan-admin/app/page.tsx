@@ -17,8 +17,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/components/providers/language-provider';
 import { Navigation } from 'lucide-react';
 import { fetchPotholes, updatePothole as apiUpdatePothole } from '@/lib/api';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
-const PriorityMap = dynamic(() => import('@/components/dashboard/priority-map'), { 
+const PriorityMap = dynamic(() => import('@/components/dashboard/priority-map'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse flex flex-col items-center justify-center border border-slate-200 dark:border-slate-700">
@@ -27,7 +28,7 @@ const PriorityMap = dynamic(() => import('@/components/dashboard/priority-map'),
   )
 });
 
-export default function OverviewPage() {
+function DashboardContent() {
   const { t } = useLanguage();
   const { setDashboardChatContext } = useDashboardChatContext();
   
@@ -231,17 +232,25 @@ export default function OverviewPage() {
         <TrendChart />
       </motion.div>
 
-      {/* Detail Lightbox */}
-      <AnimatePresence>
+{/* Detail Lightbox */}
+        <AnimatePresence>
         {selectedPothole && (
-          <DetailModal 
-            pothole={selectedPothole} 
+          <DetailModal
+            pothole={selectedPothole}
             onClose={() => { setSelectedPothole(null); setSelectedId(null); }}
             onStatusChange={handleStatusChange}
           />
         )}
-      </AnimatePresence>
+        </AnimatePresence>
 
-    </div>
-  );
-}
+      </div>
+    );
+  }
+
+  export default function OverviewPage() {
+    return (
+      <ProtectedRoute>
+        <DashboardContent />
+      </ProtectedRoute>
+    );
+  }

@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 import time
-from db import detections, clusters
+import uuid
+import hashlib
+from db import detections, clusters, users
 from app.services.dbscan import dbscan_clus
 from app.services.lifecycle import update_lifecycle
-from db import create_indexes
+from db import create_indexes, find_user_by_username, find_user_by_email, create_user
 from db import generate_cluster_id
 from app.services.priority import priority
 from app.auth import create_token, require_auth, optional_auth
@@ -87,6 +89,74 @@ def login():
         return jsonify({"token": token, "user": {"id": "viewer-user", "role": "viewer"}})
 
     return jsonify({"error": "Invalid credentials"}), 401
+
+@app.route("/auth/register", methods=["POST"])
+def register():
+    data = request.json or {}
+    name = data.get("name")
+    email = data.get("email")
+    username = data.get("username")
+    password = data.get("password")
+
+    if not all([name, email, username, password]):
+        return jsonify({"error": "All fields are required"}), 400
+
+    if len(password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters"}), 400
+
+    if find_user_by_username(username):
+        return jsonify({"error": "Username already exists"}), 400
+
+    if find_user_by_email(email):
+        return jsonify({"error": "Email already registered"}), 400
+
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
+
+    user_data = {
+        "user_id": str(uuid.uuid4()),
+        "name": name,
+        "email": email,
+        "username": username,
+        "password": password_hash,
+        "role": "user",
+        "created_at": time.time()
+    }
+
+    create_user(user_data)
+
+    token = create_token(username, "user")
+    return jsonify({
+        "token": token,
+        "user": {
+            "id": username,
+            "role": "user",
+            "name": name
+        }
+    }), 201
+
+@app.route("/auth/me", methods=["GET"])
+@optional_auth
+def get_current_user():
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return jsonify({"error": "No token provided"}), 401
+
+    token = auth_header[7:]
+    from app.auth import decode_token
+    payload = decode_token(token)
+    if not payload:
+        return jsonify({"error": "Invalid token"}), 401
+
+    user = find_user_by_username(payload.get("user_id"))
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({
+        "id": user["username"],
+        "name": user.get("name"),
+        "email": user.get("email"),
+        "role": user.get("role")
+    })
 
 @app.route("/sync", methods=["POST"])
 @optional_auth

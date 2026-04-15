@@ -7,6 +7,7 @@ client = MongoClient(os.getenv("MONGO_URL"))
 civic_db = client["civic_db"]
 detections = civic_db["detections"]
 clusters = civic_db["clusters"]
+users = civic_db["users"]
 
 
 def generate_cluster_id():
@@ -44,8 +45,8 @@ def get_all_clusters():
 def update_cluster(cluster_id, updated_data):
     """Update cluster by cluster_id"""
     return clusters.update_one(
-    {"cluster_id": existing["cluster_id"]},
-    {"$set": existing})
+      {"cluster_id": cluster_id},
+      {"$set": updated_data})
 
 
 def clear_clusters():
@@ -60,3 +61,17 @@ def find_cluster_by_id(cluster_id):
 
 def create_indexes():
     clusters.create_index([("center", "2dsphere")])
+    users.create_index([("username", "text"), ("email", "text")])
+
+def find_user_by_username(username):
+    return users.find_one({"username": username}, {"_id": 0})
+
+def find_user_by_email(email):
+    return users.find_one({"email": email}, {"_id": 0})
+
+def create_user(user_data):
+    result = users.insert_one(user_data)
+    return str(result.inserted_id)
+
+def get_all_users():
+    return list(users.find({}, {"_id": 0, "password": 0}))
