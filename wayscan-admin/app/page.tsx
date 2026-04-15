@@ -130,7 +130,15 @@ export default function OverviewPage() {
     if (selectedPothole?.id === id) {
       setSelectedPothole(prev => prev ? { ...prev, status: newStatus } : null);
     }
-    await apiUpdatePothole(id, { status: newStatus });
+    const result = await apiUpdatePothole(id, { status: newStatus });
+    if (result) {
+      setPotholeData(prev => prev.map(p => p.id === id ? { ...p, ...result } : p));
+      if (selectedPothole?.id === id) {
+        setSelectedPothole(result);
+      }
+    } else {
+      loadPotholes();
+    }
   };
 
   const handleUpdateFilters = (newFilters: Partial<FilterState>) => {

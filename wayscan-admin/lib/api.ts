@@ -88,7 +88,7 @@ export async function updatePothole(
   try {
     const payload: Record<string, unknown> = {};
     if (data.status) payload.status = data.status;
-    if (data.assignedTeam) payload.assignedTeam = data.assignedTeam;
+    if (data.assignedTeam !== undefined) payload.assignedTeam = data.assignedTeam || null;
     if (data.notes !== undefined) payload.notes = data.notes;
     if (data.deadline) payload.deadline = data.deadline;
     if (data.internalNotes) payload.internalNotes = data.internalNotes;
@@ -96,13 +96,17 @@ export async function updatePothole(
     if (data.city) payload.city = data.city;
     if (data.state) payload.state = data.state;
 
+    console.log('Updating pothole:', id, 'with data:', payload);
+
     const result = await fetchWithAuth(`/potholes/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     });
+
+    console.log('Update result:', result);
     return result;
   } catch (error) {
-    console.warn('API update failed:', error);
+    console.error('API update failed:', error);
     return null;
   }
 }

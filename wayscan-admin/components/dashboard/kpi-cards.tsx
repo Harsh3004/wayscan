@@ -8,7 +8,9 @@ import {
   Layers,
   RefreshCw,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useLanguage } from '@/components/providers/language-provider';
@@ -16,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { mockDashboardStats } from '@/lib/mock-data';
 import { fetchDashboardStats } from '@/lib/api';
 import { KPIStats } from '@/lib/types';
+import { useRealtimeStats } from '@/lib/useRealtimeStats';
 
 function CountUp({ value }: { value: number | string }) {
   const isNumber = typeof value === 'number' || !isNaN(Number(value));
@@ -56,17 +59,9 @@ const iconVariants: Record<string, string> = {
 
 export default function KPICards() {
   const { t } = useLanguage();
-  const [stats, setStats] = useState<KPIStats>(mockDashboardStats);
-
-  useEffect(() => {
-    fetchDashboardStats().then(setStats).catch(() => {});
-
-    const interval = setInterval(() => {
-      fetchDashboardStats().then(setStats).catch(() => {});
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const [initialStats] = useState<KPIStats>(mockDashboardStats);
+  const [realtimeEnabled] = useState(true);
+  const { stats, connected } = useRealtimeStats(initialStats, realtimeEnabled);
 
   const kpis = [
     {
@@ -156,6 +151,21 @@ export default function KPICards() {
           )} />
         </motion.div>
       ))}
+
+      {/* Realtime indicator */}
+      <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 bg-white/90 dark:bg-slate-800/90 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
+        {connected ? (
+          <>
+            <Wifi className="w-3 h-3 text-emerald-500" />
+            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400">LIVE</span>
+          </>
+        ) : (
+          <>
+            <WifiOff className="w-3 h-3 text-slate-400" />
+            <span className="text-[9px] font-bold text-slate-400">POLL</span>
+          </>
+        )}
+      </div>
     </div>
   );
 }

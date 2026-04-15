@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapIcon, Layers, LayoutGrid, ChevronRight } from 'lucide-react';
@@ -9,6 +9,7 @@ import { PotholeCluster, Status } from '@/lib/types';
 import DetailModal from '@/components/dashboard/detail-modal';
 import { useLanguage } from '@/components/providers/language-provider';
 import { cn } from '@/lib/utils';
+import { fetchPotholes } from '@/lib/api';
 
 const PriorityMap = dynamic(() => import('@/components/dashboard/priority-map'), {
   ssr: false,
@@ -23,8 +24,16 @@ export default function HeatmapPage() {
   const { t } = useLanguage();
   const [selectedPothole, setSelectedPothole] = useState<PotholeCluster | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [data, setData] = useState(allPotholes);
+  const [data, setData] = useState<PotholeCluster[]>(allPotholes);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    fetchPotholes().then(setData).catch(() => {});
+    const interval = setInterval(() => {
+      fetchPotholes().then(setData).catch(() => {});
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSelect = (pothole: PotholeCluster) => {
     setSelectedId(pothole.id);

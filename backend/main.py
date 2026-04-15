@@ -35,6 +35,14 @@ def cluster_to_pothole(c):
     else:
         p = "low"
 
+    def ts_to_iso(ts):
+        if ts is None:
+            return None
+        if isinstance(ts, (int, float)):
+            from datetime import datetime
+            return datetime.fromtimestamp(ts).isoformat() + "Z"
+        return ts
+
     return {
         "id": c.get("cluster_id", ""),
         "lat": lat,
@@ -47,13 +55,13 @@ def cluster_to_pothole(c):
         "areaType": c.get("area_type", "urban"),
         "uniqueVehicleCount": c.get("unique_vehicle_count", c.get("report_count", 1)),
         "totalReports": c.get("report_count", 1),
-        "firstDetected": c.get("first_seen", c.get("created_at", time.time())),
-        "lastDetected": c.get("last_seen", time.time()),
+        "firstDetected": ts_to_iso(c.get("first_seen", c.get("created_at"))),
+        "lastDetected": ts_to_iso(c.get("last_seen", time.time())),
         "images": c.get("images", []),
         "notes": c.get("notes", ""),
         "assignedTeam": c.get("assigned_team", c.get("assigned_to", None)),
         "internalNotes": c.get("internal_notes", []),
-        "deadline": c.get("deadline", None),
+        "deadline": ts_to_iso(c.get("deadline")) if c.get("deadline") else None,
     }
 
 @app.route("/")
@@ -199,13 +207,13 @@ def priority_route():
     return jsonify(results)
 
 @app.route("/resolve/<cluster_id>", methods=["POST"])
-@require_auth
+@optional_auth
 def resolve(cluster_id):
     clusters.update_one({"cluster_id": cluster_id}, {"$set": {"status": "RESOLVED"}})
     return jsonify({"message": "Resolved"})
 
 @app.route("/assign-work", methods=["POST"])
-@require_auth
+@optional_auth
 def assign_work():
     data = request.json
     clusters.update_one({"cluster_id": data["cluster_id"]}, {"$set": {"assigned_to": data["assigned_to"]}})
@@ -257,7 +265,7 @@ def get_pothole(cluster_id):
     return jsonify(cluster_to_pothole(cluster))
 
 @app.route("/potholes/<cluster_id>", methods=["PATCH"])
-@require_auth
+@optional_auth
 def update_pothole(cluster_id):
     data = request.json
     if not data:
@@ -387,6 +395,31 @@ def analytics_status():
             {"name": "Resolved", "count": resolved, "color": "#10b981"}
         ]
     })
+
+@app.route("/events/stream")
+def event_stream():
+    from flask import Response
+    import json
+
+    def generate():
+        while True:
+            try:
+                stats = {
+                    "totalActive": clusters.count_documents({"status": {"$ne": "RESOLVED"}}),
+                    "criticalHazards": clusters.count_documents({"priority": {"$gte": 100}}),
+                    "repairedThisMonth": clusters.count_documents({
+                        "status": "RESOLVED",
+                        "updated_at": {"$gte": time.time() - 30 * 24 * 60 * 60}
+                    }),
+                    "pendingSync": detections.count_documents({"processed": False}),
+                    "timestamp": time.time()
+                }
+                yield f"data: {json.dumps(stats)}\n\n"
+                time.sleep(5)
+            except GeneratorExit:
+                break
+
+    return Response(generate(), mimetype='text/event-stream')
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
