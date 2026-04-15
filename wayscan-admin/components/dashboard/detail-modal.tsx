@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
+import {
   X, MapPin, Users, Calendar, Layers, CheckCircle, Truck,
   AlertCircle, Clock, Navigation, ChevronLeft, ChevronRight,
   Share2, MessageSquare, Send, UserCheck, Wrench
@@ -11,6 +11,7 @@ import { cn, formatDate } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/components/providers/language-provider';
 import { FIELD_TEAMS } from '@/lib/mock-data';
+import { updatePothole } from '@/lib/api';
 
 interface DetailModalProps {
   pothole: PotholeCluster;
@@ -40,8 +41,10 @@ export default function DetailModal({ pothole, onClose, onStatusChange }: Detail
 
   const handleAddNote = () => {
     if (!noteInput.trim()) return;
-    setNotes(prev => [...prev, noteInput.trim()]);
+    const newNotes = [...notes, noteInput.trim()];
+    setNotes(newNotes);
     setNoteInput('');
+    updatePothole(pothole.id, { internalNotes: newNotes });
   };
 
   const handleShareReport = () => {
@@ -186,20 +189,23 @@ export default function DetailModal({ pothole, onClose, onStatusChange }: Detail
                 <span className="font-bold text-slate-400 flex items-center gap-2"><Clock className="w-4 h-4" />{t('dashboard.modal.first_detected')}</span>
                 <span className="font-bold text-slate-700 dark:text-slate-300">{formatDate(pothole.firstDetected)}</span>
               </div>
-              {/* Assign Team Dropdown */}
-              <div className="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-800 gap-3">
-                <span className="font-bold text-slate-400 flex items-center gap-2 flex-shrink-0"><UserCheck className="w-4 h-4" />Assign Team</span>
-                <select
-                  value={assignedTeam}
-                  onChange={e => setAssignedTeam(e.target.value)}
-                  className="h-9 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
-                >
-                  <option value="">{t('dashboard.modal.unassigned')}</option>
-                  {FIELD_TEAMS.map(team => (
-                    <option key={team} value={team}>{team}</option>
-                  ))}
-                </select>
-              </div>
+{/* Assign Team Dropdown */}
+  <div className="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-800 gap-3">
+    <span className="font-bold text-slate-400 flex items-center gap-2 flex-shrink-0"><UserCheck className="w-4 h-4" />Assign Team</span>
+    <select
+      value={assignedTeam}
+      onChange={e => {
+        setAssignedTeam(e.target.value);
+        updatePothole(pothole.id, { assignedTeam: e.target.value || undefined });
+      }}
+      className="h-9 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+    >
+      <option value="">{t('dashboard.modal.unassigned')}</option>
+      {FIELD_TEAMS.map(team => (
+        <option key={team} value={team}>{team}</option>
+      ))}
+    </select>
+  </div>
             </div>
 
             {/* Internal Notes */}

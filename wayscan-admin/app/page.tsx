@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import KPICards from '@/components/dashboard/kpi-cards';
 import FilterPanel from '@/components/dashboard/filter-panel';
 import SummaryTable from '@/components/dashboard/summary-table';
@@ -16,8 +16,10 @@ import { LayoutGrid, Map as MapIcon, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/components/providers/language-provider';
 import { Navigation } from 'lucide-react';
+import { fetchPotholes, updatePothole as apiUpdatePothole } from '@/lib/api';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
-const PriorityMap = dynamic(() => import('@/components/dashboard/priority-map'), { 
+const PriorityMap = dynamic(() => import('@/components/dashboard/priority-map'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse flex flex-col items-center justify-center border border-slate-200 dark:border-slate-700">
@@ -26,7 +28,7 @@ const PriorityMap = dynamic(() => import('@/components/dashboard/priority-map'),
   )
 });
 
-export default function OverviewPage() {
+function DashboardContent() {
   const { t } = useLanguage();
   const { setDashboardChatContext } = useDashboardChatContext();
   
@@ -43,8 +45,32 @@ export default function OverviewPage() {
 
   const [selectedPothole, setSelectedPothole] = useState<PotholeCluster | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [potholeData, setPotholeData] = useState(allPotholes);
+  const [potholeData, setPotholeData] = useState<PotholeCluster[]>(allPotholes);
   const [mapCustomCenter, setMapCustomCenter] = useState<[number, number] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadPotholes = useCallback(async () => {
+    try {
+      const data = await fetchPotholes(filters);
+      setPotholeData(data);
+      setLoading(false);
+    } catch (error) {
+      console.warn('Failed to fetch potholes:', error);
+      setLoading(false);
+    }
+  }, [filters]);
+
+  useEffect(() => {
+    loadPotholes();
+  }, [loadPotholes]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadPotholes();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [loadPotholes]);
+
   const dashboardContext = useMemo(
     () => buildDashboardChatContext(potholeData, mockDashboardStats),
     [potholeData],
@@ -100,10 +126,19 @@ export default function OverviewPage() {
     setSelectedPothole(pothole);
   };
 
-  const handleStatusChange = (id: string, newStatus: Status) => {
+  const handleStatusChange = async (id: string, newStatus: Status) => {
     setPotholeData(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
     if (selectedPothole?.id === id) {
       setSelectedPothole(prev => prev ? { ...prev, status: newStatus } : null);
+    }
+    const result = await apiUpdatePothole(id, { status: newStatus });
+    if (result) {
+      setPotholeData(prev => prev.map(p => p.id === id ? { ...p, ...result } : p));
+      if (selectedPothole?.id === id) {
+        setSelectedPothole(result);
+      }
+    } else {
+      loadPotholes();
     }
   };
 
@@ -197,17 +232,25 @@ export default function OverviewPage() {
         <TrendChart />
       </motion.div>
 
-      {/* Detail Lightbox */}
-      <AnimatePresence>
+{/* Detail Lightbox */}
+        <AnimatePresence>
         {selectedPothole && (
-          <DetailModal 
-            pothole={selectedPothole} 
+          <DetailModal
+            pothole={selectedPothole}
             onClose={() => { setSelectedPothole(null); setSelectedId(null); }}
             onStatusChange={handleStatusChange}
           />
         )}
-      </AnimatePresence>
+        </AnimatePresence>
 
-    </div>
-  );
-}
+      </div>
+    );
+  }
+
+  export default function OverviewPage() {
+    return (
+      <ProtectedRoute>
+        <DashboardContent />
+      </ProtectedRoute>
+    );
+  }

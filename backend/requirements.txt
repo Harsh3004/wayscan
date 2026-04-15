@@ -1,5 +1,6 @@
 flask
 flask_cors
+flask-socketio
 uvicorn
 pymongo
 celery
@@ -7,3 +8,5 @@ redis
 scikit-learn
 numpy
 python-dotenv
+PyJWT
+python-socketio

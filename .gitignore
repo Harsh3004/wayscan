@@ -5,6 +5,7 @@ Thumbs.db
 
 node_modules/
 **/node_modules/
+wayscan-admin/node_modules/
 
 .env
 .env.*
@@ -20,6 +21,7 @@ build/
 **/*.tsbuildinfo
 
 __pycache__/
+**/__pycache__/
 *.pyc
 venv/
 .venv/
@@ -31,3 +33,11 @@ temp/
 
 .vscode/
 .idea/
+
+.kilo
+explanation.md
+explanation-healthsaarthi.md
+API_INFORMATION.md
+DOCUMENTATION.md
+AI_CHAT_FEATURE_REFERENCE.md
+PROJECT_DOCUMENTATION.md

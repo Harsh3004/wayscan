@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -13,33 +13,20 @@ import {
 import { useLanguage } from '@/components/providers/language-provider';
 import { cn } from '@/lib/utils';
 import { potholes } from '@/lib/mock-data';
-
-const cityData = [
-  { name: 'Mumbai', count: 156 },
-  { name: 'Delhi', count: 142 },
-  { name: 'Bengaluru', count: 98 },
-  { name: 'Jabalpur', count: 62 },
-  { name: 'Lucknow', count: 45 },
-];
+import {
+  fetchCityDistribution,
+  fetchMonthlyTrends,
+  fetchPriorityDistribution,
+  fetchStatusDistribution,
+  CityData,
+  MonthlyData,
+  PriorityData,
+  StatusData
+} from '@/lib/api';
 
 const areaData = [
   { name: 'Urban', value: 72 },
   { name: 'Rural', value: 28 },
-];
-
-const repairRateData = [
-  { name: 'Repaired', value: 78 },
-  { name: 'Pending', value: 22 },
-];
-
-const monthlyTrendData = [
-  { month: 'Oct', reported: 180, repaired: 140, responseTime: 5.2 },
-  { month: 'Nov', reported: 210, repaired: 165, responseTime: 4.9 },
-  { month: 'Dec', reported: 175, repaired: 190, responseTime: 4.5 },
-  { month: 'Jan', reported: 240, repaired: 200, responseTime: 4.8 },
-  { month: 'Feb', reported: 195, repaired: 220, responseTime: 4.2 },
-  { month: 'Mar', reported: 260, repaired: 230, responseTime: 3.8 },
-  { month: 'Apr', reported: 280, repaired: 245, responseTime: 3.5 },
 ];
 
 const responseTimeData = [
@@ -82,16 +69,60 @@ const getHeatColor = (count: number): string => {
 export default function AnalyticsPage() {
   const { t } = useLanguage();
 
+  const [cityData, setCityData] = useState<CityData[]>([
+    { name: 'Mumbai', count: 156 },
+    { name: 'Delhi', count: 142 },
+    { name: 'Bengaluru', count: 98 },
+    { name: 'Jabalpur', count: 62 },
+    { name: 'Lucknow', count: 45 },
+  ]);
+  const [monthlyTrendData, setMonthlyTrendData] = useState<MonthlyData[]>([
+    { month: 'Oct', reported: 180, repaired: 140 },
+    { month: 'Nov', reported: 210, repaired: 165 },
+    { month: 'Dec', reported: 175, repaired: 190 },
+    { month: 'Jan', reported: 240, repaired: 200 },
+    { month: 'Feb', reported: 195, repaired: 220 },
+    { month: 'Mar', reported: 260, repaired: 230 },
+  ]);
+  const [priorityData, setPriorityData] = useState<PriorityData[]>([
+    { name: 'High', count: 14, color: '#ef4444' },
+    { name: 'Medium', count: 28, color: '#f97316' },
+    { name: 'Low', count: 20, color: '#10b981' },
+  ]);
+  const [statusData, setStatusData] = useState<StatusData[]>([
+    { name: 'Open', count: 45, color: '#ef4444' },
+    { name: 'In Progress', count: 22, color: '#3b82f6' },
+    { name: 'Resolved', count: 33, color: '#10b981' },
+  ]);
+
+  useEffect(() => {
+    fetchCityDistribution().then(setCityData);
+    fetchMonthlyTrends().then(setMonthlyTrendData);
+    fetchPriorityDistribution().then(setPriorityData);
+    fetchStatusDistribution().then(setStatusData);
+  }, []);
+
+  const totalReports = cityData.reduce((sum, c) => sum + c.count, 0);
+  const repairRate = statusData.length > 0
+    ? Math.round((statusData.find(s => s.name === 'Resolved')?.count || 0) /
+      statusData.reduce((sum, s) => sum + s.count, 0) * 100)
+    : 78;
+
   // April 1, 2024 = Monday; week starts Sunday = offset 1
   const activityDays = useMemo(() =>
-    APRIL_ACTIVITY.map((count, i) => ({ day: i + 1, count })),
+    [0,3,5,12,8,2,0, 4,15,18,7,3,1,0, 9,14,19,11,6,2,0, 7,12,16,8,4,1,0, 5,10,3].map((count, i) => ({ day: i + 1, count })),
   []);
 
   const metrics = [
-    { label: t('analytics.metrics.repair_rate'), value: '78%', trend: '+4.2%', up: true, icon: CheckCircle2, color: 'emerald' },
-    { label: t('analytics.metrics.active_reports'), value: '1,240', trend: '+12%', up: true, icon: BarChart3, color: 'blue' },
+    { label: t('analytics.metrics.repair_rate'), value: `${repairRate}%`, trend: '+4.2%', up: true, icon: CheckCircle2, color: 'emerald' },
+    { label: t('analytics.metrics.active_reports'), value: totalReports.toLocaleString(), trend: '+12%', up: true, icon: BarChart3, color: 'blue' },
     { label: t('analytics.metrics.response_time'), value: '3.5d', trend: '-0.3d', up: false, icon: TrendingUp, color: 'purple' },
     { label: t('analytics.metrics.network_health'), value: '94%', trend: 'Stable', up: true, icon: Globe, color: 'orange' },
+  ];
+
+  const repairRateData = [
+    { name: 'Repaired', value: repairRate },
+    { name: 'Pending', value: 100 - repairRate },
   ];
 
   return (
