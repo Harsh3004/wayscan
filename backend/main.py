@@ -16,7 +16,39 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 create_indexes()
+import requests
 
+def get_location_details(lat, lon):
+    try:
+        url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}"
+
+        res = requests.get(
+            url,
+            headers={"User-Agent": "wayscan-app"},
+            timeout=5
+        )
+
+        data = res.json()
+        address = data.get("address", {})
+
+        city = (
+            address.get("city")
+            or address.get("town")
+            or address.get("village")
+            or address.get("county")
+            or "Unknown"
+        )
+
+        state = address.get("state", "Unknown")
+        location = data.get("display_name", "Unknown Location")
+
+        return city, state, location
+
+    except Exception as e:
+        print("LOCATION ERROR:", e)
+        return "Unknown", "Unknown", "Unknown Location"
+    
+    
 def distance_in_meters(lat1, lon1, lat2, lon2):
     R = 6371000
     dlat = radians(lat2 - lat1)
@@ -162,25 +194,32 @@ def get_current_user():
 @optional_auth
 def sync():
     data = request.json
-    if "lat" not in data or "lon" not in data:
+
+    if not data or "lat" not in data or "lon" not in data:
         return jsonify({"error": "Invalid data"}), 400
 
     lat = float(data["lat"])
     lon = float(data["lon"])
+
+    # 🌍 Get location
+    city, state, location_name = get_location_details(lat, lon)
 
     detection = {
         "lat": lat,
         "lon": lon,
         "confidence": float(data.get("confidence", 0)),
         "timestamp": time.time(),
-        "processed": False,
         "device_id": data.get("device_id", "unknown"),
-        "image_url": data.get("image_url", None)
+        "image_url": data.get("image_url", None),
+        "city": city,
+        "state": state,
+        "location_name": location_name
     }
 
+    # 🚫 Duplicate check (within ~3 meters)
     candidates = list(detections.find({
-        "lat": {"$gte": lat - 0.0005, "$lte": lat + 0.0005},
-        "lon": {"$gte": lon - 0.0005, "$lte": lon + 0.0005}
+        "lat": {"$gte": lat - 0.00005, "$lte": lat + 0.00005},
+        "lon": {"$gte": lon - 0.00005, "$lte": lon + 0.00005}
     }))
 
     for existing in candidates:
@@ -188,22 +227,99 @@ def sync():
         if dist < 3:
             return jsonify({"message": "Duplicate ignored", "status": "skipped"}), 200
 
+    # ✅ Insert detection
     detections.insert_one(detection)
-    return jsonify({"message": "Stored successfully"})
+
+    # 🔥 GET ALL DETECTIONS
+    all_detections = list(detections.find({}, {"_id": 0}))
+    print("TOTAL DETECTIONS:", len(all_detections))
+
+    # 🔥 RUN DBSCAN
+    cluster_groups = dbscan_clus(all_detections)
+    print("CLUSTERS:", cluster_groups)
+
+    # ❗ Clear old clusters (avoid duplicates)
+    clusters.delete_many({})
+
+    # 🔥 INSERT CLUSTERS
+    if len(cluster_groups) > 0:
+        for group in cluster_groups:
+            point = {
+                "type": "Point",
+                "coordinates": [group["lon"], group["lat"]]
+            }
+
+            cluster_data = {
+                "cluster_id": generate_cluster_id(),
+                "center": point,
+                "report_count": group["count"],
+                "severity": group.get("severity", 0),
+                "status": "OPEN",
+                "last_seen": time.time(),
+                "created_at": time.time(),
+                "priority": priority({
+                    "report_count": group["count"],
+                    "severity": group.get("severity", 0)
+                }),
+
+                # 🌍 location
+                "city": city,
+                "state": state,
+                "location_name": location_name
+            }
+
+            clusters.insert_one(cluster_data)
+
+    # 🔁 FALLBACK (if DBSCAN fails → treat individually)
+    else:
+        for d in all_detections:
+            point = {
+                "type": "Point",
+                "coordinates": [d["lon"], d["lat"]]
+            }
+
+            cluster_data = {
+                "cluster_id": generate_cluster_id(),
+                "center": point,
+                "report_count": 1,
+                "severity": d.get("confidence", 0),
+                "status": "OPEN",
+                "last_seen": time.time(),
+                "created_at": time.time(),
+                "priority": 100,
+                "city": d.get("city", "Unknown"),
+                "state": d.get("state", "Unknown"),
+                "location_name": d.get("location_name", "Unknown Location")
+            }
+
+            clusters.insert_one(cluster_data)
+
+    print("LOCATION:", city, state, location_name)
+
+    return jsonify({"message": "Stored & clustered successfully"})
+
 
 @app.route("/cluster", methods=["GET"])
 @optional_auth
 def cluster_data():
     all_detections = list(detections.find({"processed": False}, {"_id": 0}))
-    if len(all_detections) < 0:
-        return jsonify({"message": "Not enough data"}), 200
+
+    # ✅ FIX 1: correct condition
+    if len(all_detections) < 1:
+        return jsonify({"message": "No detections to cluster"}), 200
 
     cluster_groups = dbscan_clus(all_detections)
 
     for group in cluster_groups:
         lat = group["lat"]
         lon = group["lon"]
+
         point = {"type": "Point", "coordinates": [lon, lat]}
+
+        # ✅ simple fallback (avoid crash)
+        city = "Madhya Pradesh"
+        state = "India"
+        location_name = "Road Area"
 
         existing = clusters.find_one({
             "center": {
@@ -218,7 +334,12 @@ def cluster_data():
             existing["report_count"] += group["count"]
             existing["last_seen"] = time.time()
             existing = update_lifecycle(existing)
-            clusters.update_one({"cluster_id": existing["cluster_id"]}, {"$set": existing})
+
+            clusters.update_one(
+                {"cluster_id": existing["cluster_id"]},
+                {"$set": existing}
+            )
+
         else:
             cluster_data = {
                 "cluster_id": generate_cluster_id(),
@@ -230,11 +351,16 @@ def cluster_data():
                 "no_detection_count": 0,
                 "image_url": None,
                 "created_at": time.time(),
+
+                # ✅ SAFE VALUES
+                "city": city,
+                "state": state,
+                "location_name": location_name,
             }
+
             cluster_data["priority"] = priority(cluster_data)
             clusters.insert_one(cluster_data)
 
-    detections.update_many({"processed": False}, {"$set": {"processed": True}})
     return jsonify({"message": "Clusters updated"})
 
 @app.route("/cluster/<cluster_id>", methods=["GET"])
@@ -298,10 +424,13 @@ def get_devices():
     result = list(detections.aggregate(pipeline))
     return jsonify([{"device_id": d["_id"], "last_seen": d["last_seen"], "total_reports": d["total_reports"]} for d in result])
 
+
+
 @app.route("/potholes", methods=["GET"])
 @optional_auth
 def get_potholes():
     query = {}
+
     status = request.args.get("status")
     priority_filter = request.args.get("priority")
     state = request.args.get("state")
@@ -310,6 +439,7 @@ def get_potholes():
     if status:
         status_map = {"reported": "OPEN", "in-progress": "IN_PROGRESS", "repaired": "RESOLVED"}
         query["status"] = status_map.get(status, status.upper())
+
     if priority_filter:
         if priority_filter == "high":
             query["priority"] = {"$gte": 100}
@@ -317,57 +447,31 @@ def get_potholes():
             query["priority"] = {"$gte": 50, "$lt": 100}
         elif priority_filter == "low":
             query["priority"] = {"$lt": 50}
+
     if state:
         query["state"] = state
     if city:
         query["city"] = city
 
     all_clusters = list(clusters.find(query, {"_id": 0}).sort("priority", -1))
-    potholes = [cluster_to_pothole(c) for c in all_clusters]
-    return jsonify({"data": potholes, "total": len(potholes)})
 
-@app.route("/potholes/<cluster_id>", methods=["GET"])
-@optional_auth
-def get_pothole(cluster_id):
-    cluster = clusters.find_one({"cluster_id": cluster_id}, {"_id": 0})
-    if not cluster:
-        return jsonify({"error": "Not found"}), 404
-    return jsonify(cluster_to_pothole(cluster))
+    potholes = []
 
-@app.route("/potholes/<cluster_id>", methods=["PATCH"])
-@optional_auth
-def update_pothole(cluster_id):
-    data = request.json
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
+    for c in all_clusters:
+        base = cluster_to_pothole(c)
+        count = c.get("report_count", 1)
 
-    update_fields = {}
-    if "status" in data:
-        status_map = {"reported": "OPEN", "in-progress": "IN_PROGRESS", "repaired": "RESOLVED"}
-        update_fields["status"] = status_map.get(data["status"], data["status"].upper())
-    if "assignedTeam" in data:
-        update_fields["assigned_team"] = data["assignedTeam"]
-    if "notes" in data:
-        update_fields["notes"] = data["notes"]
-    if "deadline" in data:
-        update_fields["deadline"] = data["deadline"]
-    if "internalNotes" in data:
-        update_fields["internal_notes"] = data["internalNotes"]
-    if "locationName" in data:
-        update_fields["location_name"] = data["locationName"]
-    if "city" in data:
-        update_fields["city"] = data["city"]
-    if "state" in data:
-        update_fields["state"] = data["state"]
+        for i in range(count):
+            pothole = base.copy()
+            pothole["id"] = f"{base['id']}_{i}"
+            potholes.append(pothole)
 
-    update_fields["updated_at"] = time.time()
+    # ALWAYS RETURN THIS
+    return jsonify({
+        "data": potholes,
+        "total": len(potholes)
+    })
 
-    result = clusters.update_one({"cluster_id": cluster_id}, {"$set": update_fields})
-    if result.matched_count == 0:
-        return jsonify({"error": "Not found"}), 404
-
-    updated = clusters.find_one({"cluster_id": cluster_id}, {"_id": 0})
-    return jsonify(cluster_to_pothole(updated))
 
 @app.route("/dashboard/stats", methods=["GET"])
 @optional_auth
