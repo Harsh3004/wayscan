@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 import time
 from db import detections, clusters
-from app.services.dbscan import dbscan_clus
+from app.services.dbscan import dbscan_clus, process_detection
 from app.services.lifecycle import update_lifecycle
 from db import create_indexes
 from db import generate_cluster_id
@@ -114,10 +114,6 @@ def login():
         token = create_token("admin-user", "admin")
         return jsonify({"token": token, "user": {"id": "admin-user", "role": "admin"}})
 
-    if username == "viewer" and password == "viewer123":
-        token = create_token("viewer-user", "viewer")
-        return jsonify({"token": token, "user": {"id": "viewer-user", "role": "viewer"}})
-
     return jsonify({"error": "Invalid credentials"}), 401
 
 @app.route("/sync", methods=["POST"])
@@ -146,97 +142,24 @@ def sync():
         "location_name": location_name
     }
 
-    # 🚫 Duplicate check (within ~3 meters)
-    candidates = list(detections.find({
-        "lat": {"$gte": lat - 0.00005, "$lte": lat + 0.00005},
-        "lon": {"$gte": lon - 0.00005, "$lte": lon + 0.00005}
-    }))
-
-    for existing in candidates:
-        dist = distance_in_meters(lat, lon, existing["lat"], existing["lon"])
-        if dist < 3:
-            return jsonify({"message": "Duplicate ignored", "status": "skipped"}), 200
-
-    # ✅ Insert detection
-    detections.insert_one(detection)
-
-    # 🔥 GET ALL DETECTIONS
-    all_detections = list(detections.find({}, {"_id": 0}))
-    print("TOTAL DETECTIONS:", len(all_detections))
-
-    # 🔥 RUN DBSCAN
-    cluster_groups = dbscan_clus(all_detections)
-    print("CLUSTERS:", cluster_groups)
-
-    # ❗ Clear old clusters (avoid duplicates)
-    clusters.delete_many({})
-
-    # 🔥 INSERT CLUSTERS
-    if len(cluster_groups) > 0:
-        for group in cluster_groups:
-            point = {
-                "type": "Point",
-                "coordinates": [group["lon"], group["lat"]]
-            }
-
-            cluster_data = {
-                "cluster_id": generate_cluster_id(),
-                "center": point,
-                "report_count": group["count"],
-                "severity": group.get("severity", 0),
-                "status": "OPEN",
-                "last_seen": time.time(),
-                "created_at": time.time(),
-                "priority": priority({
-                    "report_count": group["count"],
-                    "severity": group.get("severity", 0)
-                }),
-
-                # 🌍 location
-                "city": city,
-                "state": state,
-                "location_name": location_name
-            }
-
-            clusters.insert_one(cluster_data)
-
-    # 🔁 FALLBACK (if DBSCAN fails → treat individually)
-    else:
-        for d in all_detections:
-            point = {
-                "type": "Point",
-                "coordinates": [d["lon"], d["lat"]]
-            }
-
-            cluster_data = {
-                "cluster_id": generate_cluster_id(),
-                "center": point,
-                "report_count": 1,
-                "severity": d.get("confidence", 0),
-                "status": "OPEN",
-                "last_seen": time.time(),
-                "created_at": time.time(),
-                "priority": 100,
-                "city": d.get("city", "Unknown"),
-                "state": d.get("state", "Unknown"),
-                "location_name": d.get("location_name", "Unknown Location")
-            }
-
-            clusters.insert_one(cluster_data)
+    # ✅ Use robust process_detection (handles location, duplicate guard, and incremental clustering)
+    result = process_detection(detection)
+    
+    print("LOG:", result.get("status"), result.get("cluster_id"))
 
     print("LOCATION:", city, state, location_name)
 
-    return jsonify({"message": "Stored & clustered successfully"})
+    return jsonify({"message": "Stored & processed successfully", "status": result.get("status")})
 
 
 @app.route("/cluster", methods=["GET"])
 @optional_auth
 def cluster_data():
+    # ✅ Find unprocessed points or run full re-cluster if requested
     all_detections = list(detections.find({"processed": False}, {"_id": 0}))
 
-    # ✅ FIX 1: correct condition
     if len(all_detections) < 1:
-        return jsonify({"message": "No detections to cluster"}), 200
+        return jsonify({"message": "No new detections to cluster"}), 200
 
     cluster_groups = dbscan_clus(all_detections)
 
@@ -246,50 +169,48 @@ def cluster_data():
 
         point = {"type": "Point", "coordinates": [lon, lat]}
 
-        # ✅ simple fallback (avoid crash)
-        city = "Madhya Pradesh"
-        state = "India"
-        location_name = "Road Area"
-
+        # Find existing cluster near this center
         existing = clusters.find_one({
             "center": {
-                "$near": {
-                    "$geometry": {"type": "Point", "coordinates": [lon, lat]},
-                    "$maxDistance": 5
+                "$nearSphere": {
+                    "$geometry": point,
+                    "$maxDistance": 10
                 }
             }
         })
 
         if existing:
-            existing["report_count"] += group["count"]
-            existing["last_seen"] = time.time()
-            existing = update_lifecycle(existing)
-
+            # Update existing
+            new_count = existing["report_count"] + group["count"]
             clusters.update_one(
                 {"cluster_id": existing["cluster_id"]},
-                {"$set": existing}
+                {
+                    "$set": {
+                        "report_count": new_count,
+                        "last_seen": time.time(),
+                        "severity": (existing.get("severity", 0) * existing["report_count"] + group["severity"] * group["count"]) / new_count
+                    }
+                }
             )
-
         else:
-            cluster_data = {
+            # Create new
+            new_cluster = {
                 "cluster_id": generate_cluster_id(),
                 "center": point,
                 "report_count": group["count"],
-                "severity": group.get("severity", 0),
+                "severity": group["severity"],
                 "status": "OPEN",
                 "last_seen": time.time(),
-                "no_detection_count": 0,
-                "image_url": None,
                 "created_at": time.time(),
-
-                # ✅ SAFE VALUES
-                "city": city,
-                "state": state,
-                "location_name": location_name,
+                "city": "Unknown", # Could reverse search here
+                "state": "Unknown",
+                "location_name": "New Area"
             }
+            new_cluster["priority"] = priority(new_cluster)
+            clusters.insert_one(new_cluster)
 
-            cluster_data["priority"] = priority(cluster_data)
-            clusters.insert_one(cluster_data)
+    # Mark all processed
+    detections.update_many({"processed": False}, {"$set": {"processed": True}})
 
     return jsonify({"message": "Clusters updated"})
 

@@ -111,7 +111,7 @@ export async function updatePothole(
   }
 }
 
-export async function login(username: string, password: string): Promise<boolean> {
+export async function login(username: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
   try {
     const response = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
@@ -119,16 +119,50 @@ export async function login(username: string, password: string): Promise<boolean
       body: JSON.stringify({ username, password }),
     });
 
-    if (!response.ok) return false;
+    const data = await response.json();
+    if (!response.ok) {
+      return { success: false, error: data.error || 'Invalid credentials' };
+    }
+
+    if (data.token && data.user) {
+      setAuthToken(data.token);
+      return { success: true, user: data.user };
+    }
+    return { success: false, error: 'Invalid response from server' };
+  } catch (error) {
+    return { success: false, error: 'Network error or server unreachable' };
+  }
+}
+
+export async function signup(username: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
 
     const data = await response.json();
-    if (data.token) {
-      setAuthToken(data.token);
-      return true;
+    if (!response.ok) {
+      return { success: false, error: data.error || 'Failed to sign up' };
     }
-    return false;
-  } catch {
-    return false;
+
+    if (data.token && data.user) {
+      setAuthToken(data.token);
+      return { success: true, user: data.user };
+    }
+    return { success: false, error: 'Invalid response from server' };
+  } catch (error) {
+    return { success: false, error: 'Network error or server unreachable' };
+  }
+}
+
+export async function fetchMe(): Promise<User | null> {
+  try {
+    const result = await fetchWithAuth('/auth/me');
+    return result;
+  } catch (error) {
+    return null;
   }
 }
 

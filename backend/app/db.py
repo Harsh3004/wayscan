@@ -13,7 +13,17 @@ users = civic_db["users"]
 
 
 def save_detection(detection):
-    #Insert a new detection
+    # Ensure GeoJSON location is present
+    if "lat" in detection and "lon" in detection:
+        detection["location"] = {
+            "type": "Point",
+            "coordinates": [float(detection["lon"]), float(detection["lat"])]
+        }
+    
+    # Set default processed flag
+    if "processed" not in detection:
+        detection["processed"] = False
+
     result = detections.insert_one(detection)
     return str(result.inserted_id)
 

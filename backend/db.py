@@ -15,7 +15,17 @@ def generate_cluster_id():
 # DETECTION
 
 def save_detection(detection):
-    #Insert a new detection
+    # Ensure GeoJSON location is present
+    if "lat" in detection and "lon" in detection:
+        detection["location"] = {
+            "type": "Point",
+            "coordinates": [float(detection["lon"]), float(detection["lat"])]
+        }
+    
+    # Set default processed flag
+    if "processed" not in detection:
+        detection["processed"] = False
+
     result = detections.insert_one(detection)
     return str(result.inserted_id)
 
@@ -60,3 +70,4 @@ def find_cluster_by_id(cluster_id):
 
 def create_indexes():
     clusters.create_index([("center", "2dsphere")])
+    detections.create_index([("location", "2dsphere")])

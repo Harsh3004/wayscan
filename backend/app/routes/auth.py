@@ -20,14 +20,18 @@ def login():
     if not user or not check_password_hash(user["password"], password):
         return jsonify({"error": "Invalid credentials"}), 401
 
-    token = create_token(str(user["_id"]), user.get("role", "viewer"))
+    user_role = user.get("role", "viewer")
+    if user_role == "viewer":
+        return jsonify({"error": "Access Denied: Your account role (viewer) does not have permission to access the dashboard."}), 403
+
+    token = create_token(str(user["_id"]), user_role)
     
     return jsonify({
         "token": token, 
         "user": {
             "id": str(user["_id"]), 
             "username": user["username"],
-            "role": user.get("role", "viewer")
+            "role": user_role
         }
     })
 
