@@ -8,7 +8,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -22,5 +22,81 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
+    Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+@keyframes wayscan-blob {
+  0% {
+    transform: translate3d(-50%, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(-48%, -1.5%, 0) scale(1.04);
+  }
+  66% {
+    transform: translate3d(-52%, 1.2%, 0) scale(0.98);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0) scale(1);
+  }
+}
+
+@keyframes wayscan-fade-up {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wayscan-detect-pulse {
+  0%,
+  100% {
+    opacity: 0.92;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.01);
+  }
+}
+
+@keyframes wayscan-scanline {
+  0% {
+    transform: translate3d(0, 10%, 0);
+    opacity: 0.0;
+  }
+  10% {
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(0, 55%, 0);
+    opacity: 0.45;
+  }
+  90% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate3d(0, 95%, 0);
+    opacity: 0.0;
+  }
+}
+
+.wayscan-detect-pulse {
+  animation: wayscan-detect-pulse 1.9s ease-in-out infinite;
+}
+
+.wayscan-scanline {
+  animation: wayscan-scanline 2.6s ease-in-out infinite;
+}
+
+.animate-blob {
+  animation: wayscan-blob 12s ease-in-out infinite;
+}
+
+.animate-fade-up {
+  animation: wayscan-fade-up 700ms ease-out both;
 }
