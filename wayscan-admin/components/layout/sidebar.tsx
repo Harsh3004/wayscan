@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/AuthContext';
 import { 
   LayoutDashboard, 
   Map as MapIcon, 
@@ -22,7 +23,7 @@ import { useLanguage } from '@/components/providers/language-provider';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { key: 'dashboard', defaultName: 'Overview', href: '/', icon: LayoutDashboard },
+  { key: 'dashboard', defaultName: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { key: 'live_map', defaultName: 'Heatmap', href: '/heatmap', icon: MapIcon },
   { key: 'reports', defaultName: 'Reports', href: '/reports', icon: FileText },
   { key: 'work_orders', defaultName: 'Work Orders', href: '/work-orders', icon: Wrench },
@@ -36,6 +37,13 @@ export default function Sidebar() {
   const { t } = useLanguage();
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
 
   return (
     <motion.aside
@@ -126,10 +134,13 @@ export default function Sidebar() {
           </div>
         )}
         
-        <button className={cn(
-          "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 transition-colors",
-          collapsed && "justify-center"
-        )}>
+        <button 
+          onClick={handleLogout}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 transition-colors",
+            collapsed && "justify-center"
+          )}
+        >
           <LogOut className="w-5 h-5" />
           {!collapsed && <span className="text-sm font-semibold">Logout</span>}
         </button>

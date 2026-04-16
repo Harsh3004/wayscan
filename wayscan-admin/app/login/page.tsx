@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   if (isAuthenticated) {
-    router.push('/');
+    router.push('/dashboard');
     return null;
   }
 
@@ -28,7 +28,7 @@ export default function LoginPage() {
     try {
       const success = await login(username, password);
       if (success) {
-        router.push('/');
+        router.push('/dashboard');
       } else {
         setError('Invalid username or password');
       }
