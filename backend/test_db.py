@@ -1,5 +1,4 @@
 from pymongo import MongoClient
-
 MONGO_URL = "mongodb+srv://admin:admin123@wayscan1.ywkfvfy.mongodb.net/?appName=Wayscan1"
 
 try:

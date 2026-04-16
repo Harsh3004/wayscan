@@ -6,7 +6,7 @@ from app.utils.helpers import generate_cluster_id
 from app.services.priority import priority as calculate_priority
 
 # Configuration
-EPS_METERS = 10  # 10 meters radius
+EPS_METERS = 0.00005
 MIN_SAMPLES = 2
 
 def dbscan_clus(detection_list, eps_meters=EPS_METERS):
@@ -86,7 +86,7 @@ def process_detection(data):
     
     point = {"type": "Point", "coordinates": [lon, lat]}
     
-    # 1. Duplicate Guard (3 meters)
+    # Duplicate Guard (3 meters)
     duplicate = detections.find_one({
         "location": {
             "$nearSphere": {
@@ -104,11 +104,11 @@ def process_detection(data):
             "is_new": False
         }
 
-    # 2. Save Detection
+    # Save Detection
     # app.db.save_detection will add 'location' and 'processed: False'
     det_id = save_detection(data)
     
-    # 3. Incremental Association
+    #  Incremental Association
     # Find nearest cluster within EPS_METERS
     nearest_cluster = clusters.find_one({
         "center": {

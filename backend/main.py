@@ -1,59 +1,21 @@
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 import time
-from db import detections, clusters
+from app.db import detections, clusters, create_indexes, generate_cluster_id
 from app.services.dbscan import dbscan_clus, process_detection
 from app.services.lifecycle import update_lifecycle
-from db import create_indexes
-from db import generate_cluster_id
 from app.services.priority import priority
 from app.auth import create_token, require_auth, optional_auth
-from math import radians, cos, sin, sqrt, atan2
+from app.routes.detection import detection_bp
+from app.routes.dashboard import dashboard_bp
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 create_indexes()
-import requests
-
-def get_location_details(lat, lon):
-    try:
-        url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}"
-
-        res = requests.get(
-            url,
-            headers={"User-Agent": "wayscan-app"},
-            timeout=5
-        )
-
-        data = res.json()
-        address = data.get("address", {})
-
-        city = (
-            address.get("city")
-            or address.get("town")
-            or address.get("village")
-            or address.get("county")
-            or "Unknown"
-        )
-
-        state = address.get("state", "Unknown")
-        location = data.get("display_name", "Unknown Location")
-
-        return city, state, location
-
-    except Exception as e:
-        print("LOCATION ERROR:", e)
-        return "Unknown", "Unknown", "Unknown Location"
-    
-    
-def distance_in_meters(lat1, lon1, lat2, lon2):
-    R = 6371000
-    dlat = radians(lat2 - lat1)
-    dlon = radians(lon2 - lon1)
-    a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    return R * c
+# Register Blueprints
+app.register_blueprint(detection_bp)
+app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
 
 def cluster_to_pothole(c):
     lat = c["center"]["coordinates"][1]
@@ -116,46 +78,10 @@ def login():
 
     return jsonify({"error": "Invalid credentials"}), 401
 
-@app.route("/sync", methods=["POST"])
-@optional_auth
-def sync():
-    data = request.json
-
-    if not data or "lat" not in data or "lon" not in data:
-        return jsonify({"error": "Invalid data"}), 400
-
-    lat = float(data["lat"])
-    lon = float(data["lon"])
-
-    # 🌍 Get location
-    city, state, location_name = get_location_details(lat, lon)
-
-    detection = {
-        "lat": lat,
-        "lon": lon,
-        "confidence": float(data.get("confidence", 0)),
-        "timestamp": time.time(),
-        "device_id": data.get("device_id", "unknown"),
-        "image_url": data.get("image_url", None),
-        "city": city,
-        "state": state,
-        "location_name": location_name
-    }
-
-    # ✅ Use robust process_detection (handles location, duplicate guard, and incremental clustering)
-    result = process_detection(detection)
-    
-    print("LOG:", result.get("status"), result.get("cluster_id"))
-
-    print("LOCATION:", city, state, location_name)
-
-    return jsonify({"message": "Stored & processed successfully", "status": result.get("status")})
-
-
 @app.route("/cluster", methods=["GET"])
 @optional_auth
 def cluster_data():
-    # ✅ Find unprocessed points or run full re-cluster if requested
+    # Find unprocessed points or run full re-cluster if requested
     all_detections = list(detections.find({"processed": False}, {"_id": 0}))
 
     if len(all_detections) < 1:
@@ -324,49 +250,7 @@ def get_potholes():
     })
 
 
-@app.route("/dashboard/stats", methods=["GET"])
-@optional_auth
-def dashboard_stats():
-    total_active = clusters.count_documents({"status": {"$ne": "RESOLVED"}})
-    critical_hazards = clusters.count_documents({"priority": {"$gte": 100}})
-    repaired_this_month = clusters.count_documents({
-        "status": "RESOLVED",
-        "updated_at": {"$gte": time.time() - 30 * 24 * 60 * 60}
-    })
-    pending_sync = detections.count_documents({"processed": False})
 
-    resolved = list(clusters.find({"status": "RESOLVED"}, {"_id": 0, "updated_at": 1, "created_at": 1}))
-    avg_resolution = 0
-    if resolved:
-        total_time = 0
-        count = 0
-        for r in resolved:
-            if r.get("updated_at") and r.get("created_at"):
-                total_time += (r["updated_at"] - r["created_at"]) / (24 * 60 * 60)
-                count += 1
-        if count > 0:
-            avg_resolution = round(total_time / count, 1)
-
-    return jsonify({
-        "totalActive": total_active,
-        "criticalHazards": critical_hazards,
-        "repairedThisMonth": repaired_this_month,
-        "avgResolutionTime": avg_resolution if avg_resolution > 0 else 4.2,
-        "pendingSync": pending_sync,
-    })
-
-@app.route("/dashboard/trends", methods=["GET"])
-@optional_auth
-def dashboard_trends():
-    weeks = []
-    now = time.time()
-    for i in range(4):
-        week_start = now - (i + 1) * 7 * 24 * 60 * 60
-        week_end = now - i * 7 * 24 * 60 * 60
-        reported = clusters.count_documents({"created_at": {"$gte": week_start, "$lt": week_end}})
-        repaired = clusters.count_documents({"status": "RESOLVED", "updated_at": {"$gte": week_start, "$lt": week_end}})
-        weeks.insert(0, {"week": f"W{4-i}", "reported": reported, "repaired": repaired})
-    return jsonify({"weekly": weeks})
 
 @app.route("/analytics/cities", methods=["GET"])
 @optional_auth

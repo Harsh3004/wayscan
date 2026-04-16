@@ -7,6 +7,4 @@ class Config:
     MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/")
     DEBUG = os.getenv("FLASK_DEBUG", "True") == "True"
     PORT = int(os.getenv("PORT", 5000))
-    
-    # CORS settings
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
