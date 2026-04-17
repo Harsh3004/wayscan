@@ -4,24 +4,17 @@ Thumbs.db
 *.tmp
 
 node_modules/
-**/node_modules/
-wayscan-admin/node_modules/
 
 .env
 .env.*
-**/.env
-**/.env.*
 
 .next/
 out/
 build/
-**/.next/
 
 *.tsbuildinfo
-**/*.tsbuildinfo
 
 __pycache__/
-**/__pycache__/
 *.pyc
 venv/
 .venv/
@@ -33,3 +26,44 @@ temp/
 
 .vscode/
 .idea/
+
+.kilo
+explanation.md
+explanation-healthsaarthi.md
+API_INFORMATION.md
+DOCUMENTATION.md
+AI_CHAT_FEATURE_REFERENCE.md
+PROJECT_DOCUMENTATION.md
+
+
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+*.pem
+
+# generated native folders
+/ios
+/android
