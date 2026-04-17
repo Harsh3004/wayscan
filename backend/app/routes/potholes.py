@@ -171,6 +171,10 @@ def event_stream():
                 time.sleep(5)
             except GeneratorExit:
                 break
+            except Exception as e:
+                print(f"SSE Error: {e}")
+                time.sleep(5)
+                continue
     return Response(generate(), mimetype='text/event-stream')
 
 @potholes_bp.route('/potholes/<cluster_id>', methods=['PATCH'])

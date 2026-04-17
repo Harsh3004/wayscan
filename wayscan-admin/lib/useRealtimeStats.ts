@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { KPIStats } from '@/lib/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
 export function useRealtimeStats(initialStats: KPIStats, enabled: boolean = true) {
   const [stats, setStats] = useState<KPIStats>(initialStats);

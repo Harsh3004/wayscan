@@ -1,7 +1,7 @@
 import { PotholeCluster, KPIStats, FilterState } from './types';
 import { potholes as mockPotholes, mockDashboardStats } from './mock-data';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
 let authToken: string | null = null;
 

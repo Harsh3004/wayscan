@@ -7,7 +7,11 @@ from app.routes.analytics import analytics_bp
 from app.routes.dashboard import dashboard_bp
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={r"/*": {
+    "origins": "*",
+    "methods": ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization"]
+}})
 
 # Register Blueprints
 app.register_blueprint(auth_bp, url_prefix="/auth")
@@ -16,15 +20,19 @@ app.register_blueprint(analytics_bp, url_prefix="/analytics")
 app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
 
 # Initialize DB indexes
+print("Initializing database indexes...")
 with app.app_context():
     create_indexes()
+print("Database indexes initialized.")
 
 @app.route("/")
 def home():
+    print("Home route accessed")
     return "Wayscan Backend Modular Running"
 
 @app.route("/health")
 def health():
+    print("Health check accessed")
     return jsonify({"status": "ok", "version": "2.0.0-modular"})
 
 
@@ -32,4 +40,4 @@ def health():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001, threaded=True)
