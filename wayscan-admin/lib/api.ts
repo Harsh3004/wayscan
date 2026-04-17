@@ -29,7 +29,8 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
   });
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `API Error: ${response.status}`);
   }
 
   return response.json();
@@ -52,13 +53,7 @@ export async function fetchPotholes(filters?: Partial<FilterState>): Promise<Pot
     const endpoint = `/potholes${queryString ? `?${queryString}` : ''}`;
 
     const result = await fetchWithAuth(endpoint);
-    if (result.data && Array.isArray(result.data)) {
-      return result.data;
-    }
-    if (Array.isArray(result)) {
-      return result;
-    }
-    throw new Error('Invalid response format');
+    return result.data || result;
   } catch (error) {
     console.warn('API fetch failed, using mock data:', error);
     return mockPotholes;
@@ -67,14 +62,7 @@ export async function fetchPotholes(filters?: Partial<FilterState>): Promise<Pot
 
 export async function fetchDashboardStats(): Promise<KPIStats> {
   try {
-    const result = await fetchWithAuth('/dashboard/stats');
-    return {
-      totalActive: result.totalActive ?? 0,
-      criticalHazards: result.criticalHazards ?? 0,
-      repairedThisMonth: result.repairedThisMonth ?? 0,
-      avgResolutionTime: result.avgResolutionTime ?? 0,
-      pendingSync: result.pendingSync ?? 0,
-    };
+    return await fetchWithAuth('/dashboard/stats');
   } catch (error) {
     console.warn('API fetch failed, using mock data:', error);
     return mockDashboardStats;
@@ -86,32 +74,26 @@ export async function updatePothole(
   data: Partial<PotholeCluster>
 ): Promise<PotholeCluster | null> {
   try {
-    const payload: Record<string, unknown> = {};
-    if (data.status) payload.status = data.status;
-    if (data.assignedTeam !== undefined) payload.assignedTeam = data.assignedTeam || null;
-    if (data.notes !== undefined) payload.notes = data.notes;
-    if (data.deadline) payload.deadline = data.deadline;
-    if (data.internalNotes) payload.internalNotes = data.internalNotes;
-    if (data.locationName) payload.locationName = data.locationName;
-    if (data.city) payload.city = data.city;
-    if (data.state) payload.state = data.state;
-
-    console.log('Updating pothole:', id, 'with data:', payload);
-
-    const result = await fetchWithAuth(`/potholes/${id}`, {
+    return await fetchWithAuth(`/potholes/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(data),
     });
-
-    console.log('Update result:', result);
-    return result;
   } catch (error) {
     console.error('API update failed:', error);
     return null;
   }
 }
 
-export async function login(username: string, password: string): Promise<boolean> {
+export interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    role: string;
+    name: string;
+  };
+}
+
+export async function login(username: string, password: string): Promise<LoginResponse | null> {
   try {
     const response = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
@@ -119,18 +101,23 @@ export async function login(username: string, password: string): Promise<boolean
       body: JSON.stringify({ username, password }),
     });
 
-    if (!response.ok) return false;
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Invalid credentials');
+    }
 
     const data = await response.json();
     if (data.token) {
       setAuthToken(data.token);
-      return true;
+      return data;
     }
-    return false;
-  } catch {
-    return false;
+    return null;
+  } catch (error: any) {
+    console.error('Login error:', error.message);
+    throw error;
   }
 }
+
 
 export async function logout(): Promise<void> {
   setAuthToken(null);

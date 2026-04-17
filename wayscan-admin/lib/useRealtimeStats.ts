@@ -13,6 +13,7 @@ export function useRealtimeStats(initialStats: KPIStats, enabled: boolean = true
 
     const connect = () => {
       const eventSource = new EventSource(`${API_BASE}/events/stream`);
+
       eventSourceRef.current = eventSource;
 
       eventSource.onopen = () => {

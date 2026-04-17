@@ -66,7 +66,7 @@ export default function Home() {
       } else {
         // Join / signup flow — call register endpoint then login
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/auth/register`,
+          `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000"}/auth/register`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -86,12 +86,13 @@ export default function Home() {
           setError(data.error || "Registration failed. Please try again.");
         }
       }
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <main className="relative min-h-screen text-white" style={backgroundStyle}>

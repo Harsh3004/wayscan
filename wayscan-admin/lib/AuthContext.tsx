@@ -30,47 +30,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem(TOKEN_KEY);
-    const storedUser = localStorage.getItem(USER_KEY);
-
-    if (storedToken && storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setToken(storedToken);
-        setUser(parsedUser);
-        setAuthToken(storedToken);
-      } catch {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
+    const initAuth = async () => {
+      const storedToken = localStorage.getItem(TOKEN_KEY);
+      if (storedToken) {
+        try {
+          setAuthToken(storedToken);
+          // Verify token with backend
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/auth/me`, {
+            headers: { 'Authorization': `Bearer ${storedToken}` }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setToken(storedToken);
+            setUser(userData);
+            localStorage.setItem(USER_KEY, JSON.stringify(userData));
+          } else {
+            // Token invalid or expired
+            logout();
+          }
+        } catch (error) {
+          console.error('Session restoration failed:', error);
+          logout();
+        }
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      const success = await apiLogin(username, password);
-      if (success) {
-        const currentToken = getAuthToken();
-        if (currentToken) {
-          setToken(currentToken);
-          localStorage.setItem(TOKEN_KEY, currentToken);
-
-          const userData: User = {
-            id: username,
-            role: username === 'admin' ? 'admin' : 'user',
-            name: username,
-          };
-          setUser(userData);
-          localStorage.setItem(USER_KEY, JSON.stringify(userData));
-          return true;
-        }
+      const response = await apiLogin(username, password);
+      if (response && response.token) {
+        const currentToken = response.token;
+        const userData = response.user;
+        
+        setToken(currentToken);
+        setUser(userData);
+        setAuthToken(currentToken);
+        
+        localStorage.setItem(TOKEN_KEY, currentToken);
+        localStorage.setItem(USER_KEY, JSON.stringify(userData));
+        return true;
       }
       return false;
-    } catch {
+    } catch (error: any) {
+      console.error('Login failed in AuthContext:', error.message);
       return false;
     }
   };
+
 
   const logout = () => {
     apiLogout();

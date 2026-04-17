@@ -8,6 +8,36 @@ from app.services.priority import priority as calculate_priority
 
 potholes_bp = Blueprint('potholes', __name__)
 
+def cluster_to_pothole(c):
+    """Helper to map a DB cluster object to the frontend PotholeCluster interface."""
+    lat = c["center"]["coordinates"][1]
+    lng = c["center"]["coordinates"][0]
+    status_map_rev = {"OPEN": "reported", "IN_PROGRESS": "in-progress", "RESOLVED": "repaired"}
+    
+    p_val = c.get("priority", 0)
+    p_label = "high" if p_val >= 100 else "medium" if p_val >= 50 else "low"
+
+    return {
+        "id": c.get("cluster_id", ""),
+        "lat": lat,
+        "lng": lng,
+        "locationName": c.get("location_name", "Unknown Location"),
+        "city": c.get("city", "Unknown"),
+        "state": c.get("state", "Unknown"),
+        "priority": p_label,
+        "status": status_map_rev.get(c.get("status", "OPEN"), "reported"),
+        "areaType": c.get("area_type", "urban"),
+        "uniqueVehicleCount": c.get("unique_vehicle_count", c.get("report_count", 1)),
+        "totalReports": c.get("report_count", 1),
+        "images": c.get("images", []),
+        "firstDetected": ts_to_iso(c.get("first_seen", c.get("created_at"))),
+        "lastDetected": ts_to_iso(c.get("last_seen", time.time())),
+        "notes": c.get("notes"),
+        "assignedTeam": c.get("assigned_to", c.get("assignedTeam")),
+        "internalNotes": c.get("internalNotes", []),
+        "deadline": c.get("deadline")
+    }
+
 @potholes_bp.route('/potholes', methods=['GET'])
 @optional_auth
 def get_potholes():
@@ -34,32 +64,9 @@ def get_potholes():
 
     all_clusters = list(clusters.find(query, {"_id": 0}).sort("priority", -1))
     
-    # Mapping logic from main.py
     potholes = []
     for c in all_clusters:
-        lat = c["center"]["coordinates"][1]
-        lng = c["center"]["coordinates"][0]
-        status_map_rev = {"OPEN": "reported", "IN_PROGRESS": "in-progress", "RESOLVED": "repaired"}
-        
-        p_val = c.get("priority", 0)
-        p_label = "high" if p_val >= 100 else "medium" if p_val >= 50 else "low"
-
-        base = {
-            "id": c.get("cluster_id", ""),
-            "lat": lat,
-            "lng": lng,
-            "locationName": c.get("location_name", "Unknown Location"),
-            "city": c.get("city", "Unknown"),
-            "state": c.get("state", "Unknown"),
-            "priority": p_label,
-            "status": status_map_rev.get(c.get("status", "OPEN"), "reported"),
-            "areaType": c.get("area_type", "urban"),
-            "uniqueVehicleCount": c.get("unique_vehicle_count", c.get("report_count", 1)),
-            "totalReports": c.get("report_count", 1),
-            "images": c.get("images", []),
-            "firstDetected": ts_to_iso(c.get("first_seen", c.get("created_at"))),
-            "lastDetected": ts_to_iso(c.get("last_seen", time.time())),
-        }
+        base = cluster_to_pothole(c)
         
         count = c.get("report_count", 1)
         for i in range(count):
@@ -134,15 +141,67 @@ def trigger_clustering():
 
     return jsonify({"message": "Clusters updated"})
 
-@potholes_bp.route('/resolve/<cluster_id>', methods=['POST'])
+@potholes_bp.route('/potholes/<cluster_id>', methods=['GET'])
 @optional_auth
-def resolve(cluster_id):
-    clusters.update_one({"cluster_id": cluster_id}, {"$set": {"status": "RESOLVED", "updated_at": time.time()}})
-    return jsonify({"message": "Resolved"})
+def get_pothole(cluster_id):
+    # Some ids have _0, _1 appended due to the expansion mapping, so strip it to find the real cluster
+    base_id = cluster_id.split('_')[0]
+    cluster = clusters.find_one({"cluster_id": base_id}, {"_id": 0})
+    if not cluster:
+        return jsonify({"error": "Not found"}), 404
+        
+    pothole = cluster_to_pothole(cluster)
+    pothole["id"] = cluster_id # preserve requested id
+    return jsonify(pothole)
 
-@potholes_bp.route('/assign-work', methods=['POST'])
+@potholes_bp.route('/events/stream')
+def event_stream():
+    from flask import Response
+    import time
+    import json
+    def generate():
+        while True:
+            try:
+                stats = {
+                    "totalActive": clusters.count_documents({"status": {"$ne": "RESOLVED"}}),
+                    "criticalHazards": clusters.count_documents({"priority": {"$gte": 100}}),
+                    "timestamp": time.time()
+                }
+                yield f"data: {json.dumps(stats)}\n\n"
+                time.sleep(5)
+            except GeneratorExit:
+                break
+    return Response(generate(), mimetype='text/event-stream')
+
+@potholes_bp.route('/potholes/<cluster_id>', methods=['PATCH'])
 @optional_auth
-def assign_work():
+def update_pothole(cluster_id):
     data = request.json
-    clusters.update_one({"cluster_id": data["cluster_id"]}, {"$set": {"assigned_to": data["assigned_to"]}})
-    return jsonify({"message": "Assigned"})
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    base_id = cluster_id.split('_')[0]
+    
+    update_fields = {"updated_at": time.time()}
+    status_map = {"reported": "OPEN", "in-progress": "IN_PROGRESS", "repaired": "RESOLVED"}
+    
+    if "status" in data:
+        update_fields["status"] = status_map.get(data["status"], data["status"].upper())
+    if "assignedTeam" in data:
+        update_fields["assigned_to"] = data["assignedTeam"]
+    if "notes" in data:
+        update_fields["notes"] = data["notes"]
+    if "deadline" in data:
+        update_fields["deadline"] = data["deadline"]
+    if "internalNotes" in data:
+        update_fields["internalNotes"] = data["internalNotes"]
+        
+    clusters.update_one({"cluster_id": base_id}, {"$set": update_fields})
+    
+    updated_cluster = clusters.find_one({"cluster_id": base_id}, {"_id": 0})
+    if not updated_cluster:
+        return jsonify({"error": "Not found after update"}), 404
+        
+    pothole = cluster_to_pothole(updated_cluster)
+    pothole["id"] = cluster_id
+    return jsonify(pothole)

@@ -13,12 +13,33 @@ def get_clusters():
 
 @dashboard_bp.route('/stats', methods=['GET'])
 def dashboard_stats():
-    total_active = clusters.count_documents({"status": {"$ne": "RESOLVED"}})
-    critical_hazards = clusters.count_documents({"priority": {"$gte": 100}})
-    repaired_this_month = clusters.count_documents({
-        "status": "RESOLVED",
-        "updated_at": {"$gte": time.time() - 30 * 24 * 60 * 60}
-    })
+    # Use aggregation to sum report_count for active clusters
+    active_pipeline = [
+        {"$match": {"status": {"$ne": "RESOLVED"}}},
+        {"$group": {"_id": None, "total": {"$sum": "$report_count"}}}
+    ]
+    active_result = list(clusters.aggregate(active_pipeline))
+    total_active = active_result[0]["total"] if active_result else 0
+
+    # Sum report_count for high priority
+    critical_pipeline = [
+        {"$match": {"priority": {"$gte": 100}}},
+        {"$group": {"_id": None, "total": {"$sum": "$report_count"}}}
+    ]
+    critical_result = list(clusters.aggregate(critical_pipeline))
+    critical_hazards = critical_result[0]["total"] if critical_result else 0
+
+    # Sum report_count for repaired this month
+    repaired_pipeline = [
+        {"$match": {
+            "status": "RESOLVED",
+            "updated_at": {"$gte": time.time() - 30 * 24 * 60 * 60}
+        }},
+        {"$group": {"_id": None, "total": {"$sum": "$report_count"}}}
+    ]
+    repaired_result = list(clusters.aggregate(repaired_pipeline))
+    repaired_this_month = repaired_result[0]["total"] if repaired_result else 0
+
     pending_sync = detections.count_documents({"processed": False})
 
     resolved = list(clusters.find({"status": "RESOLVED"}, {"_id": 0, "updated_at": 1, "created_at": 1}))
@@ -40,6 +61,7 @@ def dashboard_stats():
         "avgResolutionTime": avg_resolution if avg_resolution > 0 else 4.2,
         "pendingSync": pending_sync,
     })
+
 
 
 @dashboard_bp.route('/trends', methods=['GET'])

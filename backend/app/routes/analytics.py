@@ -37,18 +37,39 @@ def dashboard_stats():
         "pendingSync": pending_sync,
     })
 
-@analytics_bp.route('/trends', methods=['GET'])
+@analytics_bp.route('/monthly', methods=['GET'])
 @optional_auth
-def dashboard_trends():
-    weeks = []
+def analytics_monthly():
+    import datetime
+    months_data = []
     now = time.time()
-    for i in range(4):
-        week_start = now - (i + 1) * 7 * 24 * 60 * 60
-        week_end = now - i * 7 * 24 * 60 * 60
-        reported = clusters.count_documents({"created_at": {"$gte": week_start, "$lt": week_end}})
-        repaired = clusters.count_documents({"status": "RESOLVED", "updated_at": {"$gte": week_start, "$lt": week_end}})
-        weeks.insert(0, {"week": f"W{4-i}", "reported": reported, "repaired": repaired})
-    return jsonify({"weekly": weeks})
+    for i in range(6):
+        month_start = now - (i + 1) * 30 * 24 * 60 * 60
+        month_end = now - i * 30 * 24 * 60 * 60
+        
+        dt = datetime.datetime.fromtimestamp(month_start)
+        month_label = dt.strftime('%b')
+        
+        # Sum report_count for reported in this month range
+        reported_pipeline = [
+            {"$match": {"created_at": {"$gte": month_start, "$lt": month_end}}},
+            {"$group": {"_id": None, "total": {"$sum": "$report_count"}}}
+        ]
+        reported_res = list(clusters.aggregate(reported_pipeline))
+        reported = reported_res[0]["total"] if reported_res else 0
+
+        # Sum report_count for resolved in this month range
+        resolved_pipeline = [
+            {"$match": {"status": "RESOLVED", "updated_at": {"$gte": month_start, "$lt": month_end}}},
+            {"$group": {"_id": None, "total": {"$sum": "$report_count"}}}
+        ]
+        resolved_res = list(clusters.aggregate(resolved_pipeline))
+        resolved = resolved_res[0]["total"] if resolved_res else 0
+        
+        months_data.insert(0, {"month": month_label, "reported": reported, "resolved": resolved})
+    return jsonify({"data": months_data})
+
+
 
 @analytics_bp.route('/heatmap', methods=['GET'])
 @optional_auth
@@ -74,9 +95,15 @@ def analytics_cities():
 @analytics_bp.route('/priority-distribution', methods=['GET'])
 @optional_auth
 def analytics_priority():
-    high = clusters.count_documents({"priority": {"$gte": 100}})
-    medium = clusters.count_documents({"priority": {"$gte": 50, "$lt": 100}})
-    low = clusters.count_documents({"priority": {"$lt": 50}})
+    def get_sum(query):
+        pipe = [{"$match": query}, {"$group": {"_id": None, "total": {"$sum": "$report_count"}}}]
+        res = list(clusters.aggregate(pipe))
+        return res[0]["total"] if res else 0
+
+    high = get_sum({"priority": {"$gte": 100}})
+    medium = get_sum({"priority": {"$gte": 50, "$lt": 100}})
+    low = get_sum({"priority": {"$lt": 50}})
+
     return jsonify({
         "data": [
             {"name": "High", "count": high, "color": "#ef4444"},
@@ -88,9 +115,15 @@ def analytics_priority():
 @analytics_bp.route('/status-distribution', methods=['GET'])
 @optional_auth
 def analytics_status():
-    open_count = clusters.count_documents({"status": "OPEN"})
-    in_progress = clusters.count_documents({"status": "IN_PROGRESS"})
-    resolved = clusters.count_documents({"status": "RESOLVED"})
+    def get_sum(query):
+        pipe = [{"$match": query}, {"$group": {"_id": None, "total": {"$sum": "$report_count"}}}]
+        res = list(clusters.aggregate(pipe))
+        return res[0]["total"] if res else 0
+
+    open_count = get_sum({"status": "OPEN"})
+    in_progress = get_sum({"status": "IN_PROGRESS"})
+    resolved = get_sum({"status": "RESOLVED"})
+
     return jsonify({
         "data": [
             {"name": "Open", "count": open_count, "color": "#ef4444"},
@@ -99,18 +132,5 @@ def analytics_status():
         ]
     })
 
-@analytics_bp.route('/events/stream')
-def event_stream():
-    def generate():
-        while True:
-            try:
-                stats = {
-                    "totalActive": clusters.count_documents({"status": {"$ne": "RESOLVED"}}),
-                    "criticalHazards": clusters.count_documents({"priority": {"$gte": 100}}),
-                    "timestamp": time.time()
-                }
-                yield f"data: {json.dumps(stats)}\n\n"
-                time.sleep(5)
-            except GeneratorExit:
-                break
-    return Response(generate(), mimetype='text/event-stream')
+
+

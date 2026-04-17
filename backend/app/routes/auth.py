@@ -10,39 +10,68 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.json or {}
-    username = data.get("username")
-    password = data.get("password")
+    username = data.get("username", "").strip()
+    password = data.get("password", "").strip()
 
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    # Hardcoded demo credentials
     if username == "admin" and password == "admin123":
-        token = create_token("admin-user", "admin")
-        return jsonify({"token": token, "user": {"id": "admin-user", "role": "admin"}})
+        token = create_token("admin", "admin")
+        return jsonify({
+            "token": token, 
+            "user": {
+                "id": "admin", 
+                "role": "admin",
+                "name": "Super Admin"
+            }
+        })
 
     if username == "viewer" and password == "viewer123":
-        token = create_token("viewer-user", "viewer")
-        return jsonify({"token": token, "user": {"id": "viewer-user", "role": "viewer"}})
+        token = create_token("viewer", "viewer")
+        return jsonify({
+            "token": token, 
+            "user": {
+                "id": "viewer", 
+                "role": "viewer",
+                "name": "Demo Viewer"
+            }
+        })
+
+    # Database check
+    user = users.find_one({"username": username})
+    if user:
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        if user["password"] == password_hash:
+            token = create_token(username, user.get("role", "user"))
+            return jsonify({
+                "token": token,
+                "user": {
+                    "id": user["username"],
+                    "role": user.get("role", "user"),
+                    "name": user.get("name", username)
+                }
+            })
 
     return jsonify({"error": "Invalid credentials"}), 401
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.json or {}
-    name = data.get("name")
-    email = data.get("email")
     username = data.get("username")
     password = data.get("password")
+    email = data.get("email", username)
+    name = data.get("name", username)
 
-    if not all([name, email, username, password]):
-        return jsonify({"error": "All fields are required"}), 400
+    if not all([username, password]):
+        return jsonify({"error": "Username and password are required"}), 400
 
     if len(password) < 6:
         return jsonify({"error": "Password must be at least 6 characters"}), 400
 
-    # These helpers would ideally be in app/db.py
-    if users.find_one({"username": username}):
+    if users.find_one({"username": username}) or username in ["admin", "viewer"]:
         return jsonify({"error": "Username already exists"}), 400
-
-    if users.find_one({"email": email}):
-        return jsonify({"error": "Email already registered"}), 400
 
     password_hash = hashlib.sha256(password.encode()).hexdigest()
 
@@ -69,19 +98,27 @@ def register():
     }), 201
 
 @auth_bp.route('/me', methods=['GET'])
-@optional_auth
+@require_auth
 def get_me():
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        return jsonify({"error": "No token provided"}), 401
+    # g.current_user is populated by @require_auth decorator
+    user_payload = g.current_user
+    username = user_payload.get("user_id")
 
-    token = auth_header[7:]
-    from app.auth import decode_token
-    payload = decode_token(token)
-    if not payload:
-        return jsonify({"error": "Invalid token"}), 401
+    # Hardcoded checks first
+    if username == "admin":
+        return jsonify({
+            "id": "admin",
+            "name": "Super Admin",
+            "role": "admin"
+        })
+    if username == "viewer":
+        return jsonify({
+            "id": "viewer",
+            "name": "Demo Viewer",
+            "role": "viewer"
+        })
 
-    user = users.find_one({"username": payload.get("user_id")})
+    user = users.find_one({"username": username})
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -91,4 +128,5 @@ def get_me():
         "email": user.get("email"),
         "role": user.get("role")
     })
+
 
