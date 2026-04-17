@@ -6,7 +6,6 @@ from app.routes.potholes import potholes_bp
 from app.routes.analytics import analytics_bp
 
 def create_app(config_class=Config):
-    """App factory for creating a Flask app instance."""
     app = Flask(__name__)
     app.config.from_object(config_class)
 

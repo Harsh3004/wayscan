@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify, g
 import time
-from app.db import detections, clusters
+from app.db import detections, clusters, save_cluster
 from app.auth import optional_auth
 from app.services.dbscan import dbscan_clus, process_detection
-from app.utils.helpers import generate_cluster_id
+from app.utils.helpers import generate_cluster_id, get_location_details
 from app.services.priority import priority as calculate_priority
 
 potholes_bp = Blueprint('potholes', __name__)
@@ -70,12 +70,32 @@ def get_potholes():
 @potholes_bp.route('/sync', methods=['POST'])
 @optional_auth
 def sync():
-    data = request.json
-    if not data or "lat" not in data or "lon" not in data:
+    payload = request.json
+    if not payload:
         return jsonify({"error": "Invalid data"}), 400
     
-    result = process_detection(data)
-    return jsonify({"message": "Stored & clustered successfully", "cluster_id": result.get("cluster_id")})
+    # Handle both single object and list of objects
+    if isinstance(payload, list):
+        detections_list = payload
+    elif isinstance(payload, dict) and "detections" in payload:
+        detections_list = payload["detections"]
+    else:
+        detections_list = [payload]
+
+    # Offload to background task using threading
+    import threading
+    from app.tasks import process_sync_task
+    user_id = g.get("current_user", {}).get("user_id", "guest")
+    
+    # Run in a background thread
+    thread = threading.Thread(target=process_sync_task, args=(detections_list, user_id))
+    thread.daemon = True  # Ensure thread dies when main process dies
+    thread.start()
+    
+    return jsonify({
+        "message": "Batch processing started in background",
+        "batch_size": len(detections_list)
+    }), 202
 
 @potholes_bp.route('/cluster', methods=['GET'])
 @optional_auth
@@ -89,17 +109,27 @@ def trigger_clustering():
     clusters.delete_many({})
 
     for group in cluster_groups:
+        lat = group["lat"]
+        lon = group["lon"]
+        
+        # Enrich each cluster with location details
+        city, state, location_name = get_location_details(lat, lon)
+        
         c_data = {
             "cluster_id": generate_cluster_id(),
-            "center": {"type": "Point", "coordinates": [group["lon"], group["lat"]]},
+            "lat": lat,
+            "lon": lon,
             "report_count": group["count"],
             "severity": group.get("severity", 0),
             "status": "OPEN",
             "last_seen": time.time(),
             "created_at": time.time(),
+            "city": city,
+            "state": state,
+            "location_name": location_name,
             "priority": calculate_priority(group) if callable(calculate_priority) else 100
         }
-        clusters.insert_one(c_data)
+        save_cluster(c_data)
 
     return jsonify({"message": "Clusters updated"})
 
@@ -115,15 +145,3 @@ def assign_work():
     data = request.json
     clusters.update_one({"cluster_id": data["cluster_id"]}, {"$set": {"assigned_to": data["assigned_to"]}})
     return jsonify({"message": "Assigned"})
-
-@potholes_bp.route('/detect', methods=['POST'])
-def detect():
-    data = request.json
-    if not data or "lat" not in data or "lon" not in data:
-        return jsonify({"error": "Invalid data"}), 400
-    result = process_detection(data)
-    return jsonify({
-        "status": "processed",
-        "cluster_id": result.get("cluster_id"),
-        "is_new": result.get("is_new")
-    })

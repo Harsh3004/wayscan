@@ -6,16 +6,16 @@ from app.services.dbscan import dbscan_clus, process_detection
 from app.services.lifecycle import update_lifecycle
 from app.services.priority import priority
 from app.auth import create_token, require_auth, optional_auth
-from app.routes.detection import detection_bp
 from app.routes.dashboard import dashboard_bp
+from app.routes.potholes import potholes_bp
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 create_indexes()
 # Register Blueprints
-app.register_blueprint(detection_bp)
 app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
+app.register_blueprint(potholes_bp, url_prefix="/potholes")
 
 def cluster_to_pothole(c):
     lat = c["center"]["coordinates"][1]
@@ -78,67 +78,7 @@ def login():
 
     return jsonify({"error": "Invalid credentials"}), 401
 
-@app.route("/cluster", methods=["GET"])
-@optional_auth
-def cluster_data():
-    # Find unprocessed points or run full re-cluster if requested
-    all_detections = list(detections.find({"processed": False}, {"_id": 0}))
 
-    if len(all_detections) < 1:
-        return jsonify({"message": "No new detections to cluster"}), 200
-
-    cluster_groups = dbscan_clus(all_detections)
-
-    for group in cluster_groups:
-        lat = group["lat"]
-        lon = group["lon"]
-
-        point = {"type": "Point", "coordinates": [lon, lat]}
-
-        # Find existing cluster near this center
-        existing = clusters.find_one({
-            "center": {
-                "$nearSphere": {
-                    "$geometry": point,
-                    "$maxDistance": 10
-                }
-            }
-        })
-
-        if existing:
-            # Update existing
-            new_count = existing["report_count"] + group["count"]
-            clusters.update_one(
-                {"cluster_id": existing["cluster_id"]},
-                {
-                    "$set": {
-                        "report_count": new_count,
-                        "last_seen": time.time(),
-                        "severity": (existing.get("severity", 0) * existing["report_count"] + group["severity"] * group["count"]) / new_count
-                    }
-                }
-            )
-        else:
-            # Create new
-            new_cluster = {
-                "cluster_id": generate_cluster_id(),
-                "center": point,
-                "report_count": group["count"],
-                "severity": group["severity"],
-                "status": "OPEN",
-                "last_seen": time.time(),
-                "created_at": time.time(),
-                "city": "Unknown", # Could reverse search here
-                "state": "Unknown",
-                "location_name": "New Area"
-            }
-            new_cluster["priority"] = priority(new_cluster)
-            clusters.insert_one(new_cluster)
-
-    # Mark all processed
-    detections.update_many({"processed": False}, {"$set": {"processed": True}})
-
-    return jsonify({"message": "Clusters updated"})
 
 @app.route("/cluster/<cluster_id>", methods=["GET"])
 @optional_auth
@@ -179,18 +119,9 @@ def priority_route():
         results.append({"cluster": c, "priority_score": score})
     return jsonify(results)
 
-@app.route("/resolve/<cluster_id>", methods=["POST"])
-@optional_auth
-def resolve(cluster_id):
-    clusters.update_one({"cluster_id": cluster_id}, {"$set": {"status": "RESOLVED"}})
-    return jsonify({"message": "Resolved"})
 
-@app.route("/assign-work", methods=["POST"])
-@optional_auth
-def assign_work():
-    data = request.json
-    clusters.update_one({"cluster_id": data["cluster_id"]}, {"$set": {"assigned_to": data["assigned_to"]}})
-    return jsonify({"message": "Assigned"})
+
+
 
 @app.route("/devices", methods=["GET"])
 @optional_auth
@@ -203,51 +134,7 @@ def get_devices():
 
 
 
-@app.route("/potholes", methods=["GET"])
-@optional_auth
-def get_potholes():
-    query = {}
 
-    status = request.args.get("status")
-    priority_filter = request.args.get("priority")
-    state = request.args.get("state")
-    city = request.args.get("city")
-
-    if status:
-        status_map = {"reported": "OPEN", "in-progress": "IN_PROGRESS", "repaired": "RESOLVED"}
-        query["status"] = status_map.get(status, status.upper())
-
-    if priority_filter:
-        if priority_filter == "high":
-            query["priority"] = {"$gte": 100}
-        elif priority_filter == "medium":
-            query["priority"] = {"$gte": 50, "$lt": 100}
-        elif priority_filter == "low":
-            query["priority"] = {"$lt": 50}
-
-    if state:
-        query["state"] = state
-    if city:
-        query["city"] = city
-
-    all_clusters = list(clusters.find(query, {"_id": 0}).sort("priority", -1))
-
-    potholes = []
-
-    for c in all_clusters:
-        base = cluster_to_pothole(c)
-        count = c.get("report_count", 1)
-
-        for i in range(count):
-            pothole = base.copy()
-            pothole["id"] = f"{base['id']}_{i}"
-            potholes.append(pothole)
-
-    # ALWAYS RETURN THIS
-    return jsonify({
-        "data": potholes,
-        "total": len(potholes)
-    })
 
 
 

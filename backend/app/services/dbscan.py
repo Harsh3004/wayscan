@@ -1,15 +1,14 @@
 from sklearn.cluster import DBSCAN
 import numpy as np
 import time
-from app.db import detections, clusters, save_detection
+from app.db import detections, clusters, save_detection, save_cluster
 from app.utils.helpers import generate_cluster_id
 from app.services.priority import priority as calculate_priority
 
-EPS_METERS = 0.00005
+EPS_METERS = 5
 MIN_SAMPLES = 2
 
 def dbscan_clus(detection_list, eps_meters=EPS_METERS):
-    
     if not detection_list:
         return []
 
@@ -72,6 +71,7 @@ def process_detection(data):
     point = {"type": "Point", "coordinates": [lon, lat]}
     
     duplicate = detections.find_one({
+        "device_id": data.get("device_id"),
         "location": {
             "$nearSphere": {
                 "$geometry": point,
@@ -128,6 +128,36 @@ def process_detection(data):
             "status": "associated",
             "cluster_id": nearest_cluster["cluster_id"],
             "is_new": False
+        }
+
+    else:
+        new_cluster = {
+            "cluster_id": generate_cluster_id(),
+            "lat": lat,
+            "lon": lon,
+            "report_count": 1,
+            "severity": float(data.get("confidence", 0)),
+            "status": "OPEN",
+            "last_seen": time.time(),
+            "created_at": time.time(),
+            "city": data.get("city", "Unknown"),
+            "state": data.get("state", "Unknown"),
+            "location_name": data.get("location_name", "Unknown Location"),
+            "no_detection_count": 0
+        }
+        new_cluster["priority"] = calculate_priority(new_cluster)
+        save_cluster(new_cluster)
+        
+        from bson import ObjectId
+        detections.update_one(
+            {"_id": ObjectId(det_id)},
+            {"$set": {"processed": True, "cluster_id": new_cluster["cluster_id"]}}
+        )
+
+        return {
+            "status": "created",
+            "cluster_id": new_cluster["cluster_id"],
+            "is_new": True
         }
 
     return {
