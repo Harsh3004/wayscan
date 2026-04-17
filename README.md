@@ -20,3 +20,16 @@ MONGO_URL=your_mongodb_url=""
 
 5. Run backend server\
 `python main.py`
+
+##react-app
+
+1. Install dependencies
+`npm i`
+2. To use start app debugging in smart phone and use this command
+'npx expo run:android --device'
+
+your device will be list select it
+
+if expo is not downloaded the command will not work!
+
+before starting the app go to potholeservice and in api use you own PC's ip address

@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 import time
@@ -194,6 +197,7 @@ def get_current_user():
 @optional_auth
 def sync():
     data = request.json
+    print("📥 /sync received:", data)
 
     if not data or "lat" not in data or "lon" not in data:
         return jsonify({"error": "Invalid data"}), 400
@@ -596,4 +600,4 @@ def event_stream():
     return Response(generate(), mimetype='text/event-stream')
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(host='0.0.0.0',debug=True, port=5000)
