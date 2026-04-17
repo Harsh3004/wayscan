@@ -1,6 +1,13 @@
-import uuid
-import requests
-from math import radians, cos, sin, sqrt, atan2
+from datetime import datetime
+import time
+
+def ts_to_iso(ts):
+    """Converts a unix timestamp (int/float) to an ISO 8601 string."""
+    if ts is None:
+        return None
+    if isinstance(ts, (int, float)):
+        return datetime.fromtimestamp(ts).isoformat() + "Z"
+    return ts
 
 def generate_cluster_id():
     """Generates a unique ID for a pothole cluster."""

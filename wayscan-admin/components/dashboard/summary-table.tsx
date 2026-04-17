@@ -56,7 +56,11 @@ export default function SummaryTable({ data, selectedId, onSelect }: SummaryTabl
     return [...filtered].sort((a, b) => {
       let cmp = 0;
       if (sortKey === 'priority') cmp = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
-      else if (sortKey === 'firstDetected') cmp = new Date(a.firstDetected).getTime() - new Date(b.firstDetected).getTime();
+      else if (sortKey === 'firstDetected') {
+        const dateA = a.firstDetected ? new Date(a.firstDetected).getTime() : 0;
+        const dateB = b.firstDetected ? new Date(b.firstDetected).getTime() : 0;
+        cmp = dateA - dateB;
+      }
       else if (sortKey === 'status') cmp = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
       else if (sortKey === 'uniqueVehicleCount') cmp = a.uniqueVehicleCount - b.uniqueVehicleCount;
       return sortDir === 'asc' ? cmp : -cmp;

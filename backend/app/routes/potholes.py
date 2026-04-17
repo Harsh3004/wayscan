@@ -3,7 +3,7 @@ import time
 from app.db import detections, clusters, save_cluster
 from app.auth import optional_auth
 from app.services.dbscan import dbscan_clus, process_detection
-from app.utils.helpers import generate_cluster_id, get_location_details
+from app.utils.helpers import generate_cluster_id, get_location_details, ts_to_iso
 from app.services.priority import priority as calculate_priority
 
 potholes_bp = Blueprint('potholes', __name__)
@@ -57,6 +57,8 @@ def get_potholes():
             "uniqueVehicleCount": c.get("unique_vehicle_count", c.get("report_count", 1)),
             "totalReports": c.get("report_count", 1),
             "images": c.get("images", []),
+            "firstDetected": ts_to_iso(c.get("first_seen", c.get("created_at"))),
+            "lastDetected": ts_to_iso(c.get("last_seen", time.time())),
         }
         
         count = c.get("report_count", 1)
@@ -112,7 +114,6 @@ def trigger_clustering():
         lat = group["lat"]
         lon = group["lon"]
         
-        # Enrich each cluster with location details
         city, state, location_name = get_location_details(lat, lon)
         
         c_data = {
