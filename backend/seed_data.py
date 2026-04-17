@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-from db import clusters
+from app.db import clusters
 
 def seed_clusters():
     clusters.delete_many({})
