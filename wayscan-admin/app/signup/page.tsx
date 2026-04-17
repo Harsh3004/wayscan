@@ -21,7 +21,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   if (isAuthenticated) {
-    router.push('/');
+    router.push('/dashboard');
     return null;
   }
 
@@ -66,7 +66,7 @@ export default function SignupPage() {
       if (response.ok) {
         const success = await login(formData.username, formData.password);
         if (success) {
-          router.push('/');
+          router.push('/dashboard');
         } else {
           setError('Account created! Please login with your credentials.');
           setTimeout(() => router.push('/login'), 2000);

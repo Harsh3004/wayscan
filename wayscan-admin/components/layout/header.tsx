@@ -5,6 +5,8 @@ import { Search, Bell, Calendar, RefreshCw, Sun, Moon, Languages,
          User, LogOut, Settings, ChevronDown, X, CheckCheck,
          AlertTriangle, Clock, Zap, Info } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/AuthContext';
 import { useLanguage } from '@/components/providers/language-provider';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,6 +24,8 @@ const ALERT_ICONS = {
 export default function Header() {
   const pendingSync = 23;
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const { logout } = useAuth();
   const { t, locale, setLocale } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -54,6 +58,11 @@ export default function Header() {
   const today = new Date().toLocaleDateString(locale === 'hi' ? 'hi-IN' : 'en-IN', {
     day: 'numeric', month: 'short', year: 'numeric',
   });
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
 
   return (
     <header className="h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20 px-4 md:px-8">
@@ -264,7 +273,10 @@ export default function Header() {
                     </button>
                   ))}
                   <div className="border-t border-slate-100 dark:border-slate-800">
-                    <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    >
                       <LogOut className="w-4 h-4" />
                       Logout
                     </button>
